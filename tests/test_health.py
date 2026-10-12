@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from lernkartei.main import app
+from flashcards.main import app
 
 
 def test_health_returns_ok():

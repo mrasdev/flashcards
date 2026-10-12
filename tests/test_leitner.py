@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from lernkartei.leitner import BOX_INTERVALS, due_date_for, is_due, next_box, review
+from flashcards.leitner import BOX_INTERVALS, due_date_for, is_due, next_box, review
 
 TODAY = date(2026, 3, 10)
 

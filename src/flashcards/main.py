@@ -4,8 +4,8 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from lernkartei.db import init_db
-from lernkartei.routers import api, pages
+from flashcards.db import init_db
+from flashcards.routers import api, pages
 
 
 @asynccontextmanager

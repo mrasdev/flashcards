@@ -5,10 +5,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session
 
-from lernkartei.db import get_session, init_db, make_engine
-from lernkartei.deps import get_now, get_today
-from lernkartei.main import app
-from lernkartei.models import Card
+from flashcards.db import get_session, init_db, make_engine
+from flashcards.deps import get_now, get_today
+from flashcards.main import app
+from flashcards.models import Card
 
 # Festes "Heute" für alle Tests, die über die App laufen.
 TODAY = date(2026, 3, 10)

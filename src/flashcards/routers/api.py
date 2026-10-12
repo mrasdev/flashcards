@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, status
 
-from lernkartei import csv_import, services
-from lernkartei.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
-from lernkartei.schemas import (
+from flashcards import csv_import, services
+from flashcards.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
+from flashcards.schemas import (
     CardCreate,
     CardRead,
     CardUpdate,

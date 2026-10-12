@@ -5,8 +5,8 @@ from sqlalchemy import delete, inspect
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
-from lernkartei.db import init_db, make_engine
-from lernkartei.models import Card, Deck
+from flashcards.db import init_db, make_engine
+from flashcards.models import Card, Deck
 
 
 def make_deck(session, name="Spanisch"):

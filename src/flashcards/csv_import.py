@@ -7,7 +7,7 @@ from datetime import date
 
 from sqlmodel import Session, select
 
-from lernkartei.models import Card, Deck
+from flashcards.models import Card, Deck
 
 DELIMITER = ";"
 MAX_UPLOAD_BYTES = 1_000_000
