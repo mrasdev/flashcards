@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 
 import pytest
@@ -214,3 +215,110 @@ def test_repeated_answer_in_same_session_is_ignored(client, deck, add_card, cloc
 
 def test_answer_for_unknown_card_returns_404(client, clock):
     assert answer(client, 999, True, clock.now).status_code == 404
+
+
+# --- Tastatursteuerung -------------------------------------------------------
+
+KEYBOARD_SCRIPT = '<script src="/static/study.js" defer></script>'
+
+
+def tag_with(html, tag, attribute):
+    """Liefert das erste öffnende Tag, das das angegebene Attribut enthält."""
+    for match in re.finditer(rf"<{tag}\b[^>]*>", html):
+        if attribute in match.group(0):
+            return match.group(0)
+    raise AssertionError(f"no <{tag}> with {attribute} found")
+
+
+def has_key_hint(html):
+    return 'class="key-hint"' in html
+
+
+def test_study_page_loads_keyboard_script(client, deck, add_card):
+    add_card("hola")
+
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert html.count(KEYBOARD_SCRIPT) == 1
+
+
+def test_keyboard_script_is_served(client):
+    response = client.get("/static/study.js")
+
+    assert response.status_code == 200
+    assert "javascript" in response.headers["content-type"]
+
+
+def test_other_pages_do_not_load_keyboard_script(client, deck):
+    assert "study.js" not in client.get("/").text
+    assert "study.js" not in client.get(f"/decks/{deck['id']}").text
+
+
+def test_answer_partial_does_not_reload_script(client, deck, add_card, clock):
+    first = add_card("hola")
+    add_card("adiós")
+    started = clock.now
+    clock.tick()
+
+    response = answer(client, first, True, started, headers=HTMX)
+
+    assert "<script" not in response.text
+
+
+def test_study_page_shows_key_hint(client, deck, add_card):
+    add_card("hola")
+
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert has_key_hint(html)
+    assert "<kbd>Leertaste</kbd>" in html
+    assert "<kbd>J</kbd>" in html
+    assert "<kbd>N</kbd>" in html
+
+
+def test_next_card_partial_shows_key_hint(client, deck, add_card, clock):
+    first = add_card("hola")
+    add_card("adiós")
+    started = clock.now
+    clock.tick()
+
+    response = answer(client, first, True, started, headers=HTMX)
+
+    assert "adiós" in response.text
+    assert has_key_hint(response.text)
+
+
+def test_key_hint_is_hidden_when_session_is_over(client, deck, add_card, clock):
+    card_id = add_card("hola")
+    started = clock.now
+    clock.tick()
+
+    postponed = answer(client, card_id, False, started, headers=HTMX)
+
+    assert "Sitzung beendet." in postponed.text
+    assert not has_key_hint(postponed.text)
+
+    clock.tick()
+    started = clock.now
+    clock.tick()
+    done = answer(client, card_id, True, started, headers=HTMX)
+
+    assert "Fertig für heute!" in done.text
+    assert not has_key_hint(done.text)
+
+
+def test_study_page_without_due_cards_has_no_key_hint(client, deck):
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert "Fertig für heute!" in html
+    assert not has_key_hint(html)
+
+
+def test_study_card_has_keyboard_hooks(client, deck, add_card):
+    add_card("hola")
+
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert tag_with(html, "details", "data-study-reveal")
+    assert 'data-study-key="j"' in tag_with(html, "button", 'value="true"')
+    assert 'data-study-key="n"' in tag_with(html, "button", 'value="false"')
