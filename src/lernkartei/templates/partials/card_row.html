@@ -1,0 +1,16 @@
+<tr id="card-{{ card.id }}">
+  <td>{{ card.front }}</td>
+  <td>{{ card.back }}</td>
+  <td>{{ card.box }}</td>
+  <td class="actions">
+    <button type="button" class="secondary outline"
+            hx-get="/cards/{{ card.id }}/edit" hx-target="closest tr" hx-swap="outerHTML">
+      Bearbeiten
+    </button>
+    <button type="button" class="contrast outline"
+            hx-delete="/cards/{{ card.id }}" hx-target="#cards" hx-swap="outerHTML"
+            hx-confirm="Karte „{{ card.front }}“ löschen?">
+      Löschen
+    </button>
+  </td>
+</tr>

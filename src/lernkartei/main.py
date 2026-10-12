@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from lernkartei.db import init_db
-from lernkartei.routers import api
+from lernkartei.routers import api, pages
 
 
 @asynccontextmanager
@@ -13,7 +15,9 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Lernkartei", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 app.include_router(api.router)
+app.include_router(pages.router)
 
 
 @app.get("/health")
