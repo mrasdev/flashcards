@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -6,7 +6,7 @@ from sqlmodel import Session
 
 from lernkartei import services
 from lernkartei.db import get_session
-from lernkartei.models import Card, Deck
+from lernkartei.models import Card, Deck, utc_now
 
 
 def get_today() -> date:
@@ -14,8 +14,13 @@ def get_today() -> date:
     return date.today()
 
 
+def get_now() -> datetime:
+    return utc_now()
+
+
 SessionDep = Annotated[Session, Depends(get_session)]
 TodayDep = Annotated[date, Depends(get_today)]
+NowDep = Annotated[datetime, Depends(get_now)]
 
 
 def deck_or_404(deck_id: int, session: SessionDep) -> Deck:

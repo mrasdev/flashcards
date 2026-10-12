@@ -1,10 +1,11 @@
 """Datenbankoperationen, die JSON-API und HTML-Oberfläche gemeinsam nutzen."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlmodel import Session, or_, select
 
+from lernkartei import leitner
 from lernkartei.models import Card, Deck
 
 
@@ -14,6 +15,10 @@ class EmptyTextError(ValueError):
 
 class DuplicateDeckNameError(ValueError):
     """Es gibt bereits ein Deck mit diesem Namen."""
+
+
+class CardNotDueError(ValueError):
+    """Die Karte ist heute nicht fällig."""
 
 
 def _clean(text: str) -> str:
@@ -89,3 +94,41 @@ def update_card(
 def delete_card(session: Session, card: Card) -> None:
     session.delete(card)
     session.commit()
+
+
+def _as_utc(moment: datetime) -> datetime:
+    # Zeitstempel ohne Zeitzone (z. B. aus einem Formular) gelten als UTC.
+    return moment.replace(tzinfo=UTC) if moment.tzinfo is None else moment
+
+
+def due_cards(
+    session: Session, deck: Deck, today: date, started: datetime | None = None
+) -> list[Card]:
+    """Fällige Karten eines Decks, niedrigstes Fach zuerst.
+
+    Mit ``started`` fallen Karten weg, die in dieser Lernsitzung schon dran waren.
+    """
+    statement = select(Card).where(Card.deck_id == deck.id, Card.due_date <= today)
+    if started is not None:
+        statement = statement.where(
+            or_(Card.last_reviewed_at.is_(None), Card.last_reviewed_at < _as_utc(started))
+        )
+    return list(session.exec(statement.order_by(Card.box, Card.due_date, Card.id)).all())
+
+
+def is_pending(card: Card, today: date, started: datetime) -> bool:
+    """Ob die Karte in der Sitzung mit Beginn ``started`` noch beantwortet werden darf."""
+    if not leitner.is_due(card.due_date, today):
+        return False
+    return card.last_reviewed_at is None or card.last_reviewed_at < _as_utc(started)
+
+
+def review_card(session: Session, card: Card, known: bool, today: date, now: datetime) -> Card:
+    if not leitner.is_due(card.due_date, today):
+        raise CardNotDueError(card.id)
+    card.box, card.due_date = leitner.review(card.box, known, today)
+    card.last_reviewed_at = _as_utc(now)
+    session.add(card)
+    session.commit()
+    session.refresh(card)
+    return card

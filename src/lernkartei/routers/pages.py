@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -6,7 +7,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from lernkartei import services
-from lernkartei.deps import CardDep, DeckDep, SessionDep, TodayDep
+from lernkartei.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
 
 router = APIRouter(default_response_class=HTMLResponse, include_in_schema=False)
 templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
@@ -163,3 +164,39 @@ def delete_card(request: Request, card: CardDep, session: SessionDep):
     return templates.TemplateResponse(
         request, "partials/card_section.html", _card_context(session, deck)
     )
+
+
+def _study_context(session, deck, today: date, started: datetime) -> dict:
+    pending = services.due_cards(session, deck, today, started)
+    return {
+        "deck": deck,
+        "started": started,
+        "card": pending[0] if pending else None,
+        "remaining": len(pending),
+        # Nicht gewusste Karten sind weiter fällig, kommen aber erst in der nächsten Sitzung.
+        "postponed": 0 if pending else len(services.due_cards(session, deck, today)),
+    }
+
+
+@router.get("/decks/{deck_id}/study")
+def study(request: Request, deck: DeckDep, session: SessionDep, today: TodayDep, now: NowDep):
+    # Jeder Aufruf beginnt eine neue Sitzung; ihr Startzeitpunkt läuft im Formular mit.
+    context = _study_context(session, deck, today, now)
+    return templates.TemplateResponse(request, "study.html", context)
+
+
+@router.post("/cards/{card_id}/answer")
+def answer_card(
+    request: Request,
+    card: CardDep,
+    session: SessionDep,
+    today: TodayDep,
+    now: NowDep,
+    known: Annotated[bool, Form()],
+    started: Annotated[datetime, Form()],
+):
+    # Doppelt abgeschickte Antworten zählen nicht noch einmal.
+    if services.is_pending(card, today, started):
+        services.review_card(session, card, known, today, now)
+    context = _study_context(session, card.deck, today, started)
+    return _render(request, "study.html", "partials/study_card.html", context)

@@ -47,3 +47,20 @@ td.actions button {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* Lernmodus */
+.study-front {
+  font-size: 1.5rem;
+}
+
+.study-back {
+  font-size: 1.25rem;
+  margin-top: 1rem;
+}
+
+.answer-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 0;
+}

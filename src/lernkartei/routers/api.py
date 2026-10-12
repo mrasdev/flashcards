@@ -1,8 +1,16 @@
 from fastapi import APIRouter, HTTPException, status
 
 from lernkartei import services
-from lernkartei.deps import CardDep, DeckDep, SessionDep, TodayDep
-from lernkartei.schemas import CardCreate, CardRead, CardUpdate, DeckCreate, DeckRead, DeckUpdate
+from lernkartei.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
+from lernkartei.schemas import (
+    CardCreate,
+    CardRead,
+    CardUpdate,
+    DeckCreate,
+    DeckRead,
+    DeckUpdate,
+    ReviewCreate,
+)
 
 router = APIRouter(prefix="/api")
 
@@ -72,3 +80,18 @@ def update_card(data: CardUpdate, card: CardDep, session: SessionDep):
 @router.delete("/cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Karten"])
 def delete_card(card: CardDep, session: SessionDep) -> None:
     services.delete_card(session, card)
+
+
+@router.get("/decks/{deck_id}/due", response_model=list[CardRead], tags=["Lernen"])
+def list_due_cards(deck: DeckDep, session: SessionDep, today: TodayDep):
+    return services.due_cards(session, deck, today)
+
+
+@router.post("/cards/{card_id}/review", response_model=CardRead, tags=["Lernen"])
+def review_card(
+    data: ReviewCreate, card: CardDep, session: SessionDep, today: TodayDep, now: NowDep
+):
+    try:
+        return services.review_card(session, card, data.known, today, now)
+    except services.CardNotDueError:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Karte ist heute nicht fällig") from None
