@@ -1,0 +1,30 @@
+Wofür steht die Abkürzung DNS?;Domain Name System – übersetzt Hostnamen in IP-Adressen
+Welche Aufgabe hat DHCP?;Weist Geräten im Netz automatisch IP-Adresse, Subnetzmaske, Gateway und DNS-Server zu
+Wie viele Schichten hat das OSI-Modell?;Sieben
+Auf welcher OSI-Schicht arbeitet ein Router?;Schicht 3 (Vermittlungsschicht)
+Auf welcher OSI-Schicht arbeitet ein Switch?;Schicht 2 (Sicherungsschicht)
+Was unterscheidet TCP von UDP?;TCP ist verbindungsorientiert und zuverlässig, UDP verbindungslos und ohne Zustellgarantie
+Welcher Port ist Standard für HTTPS?;443
+Welcher Port ist Standard für SSH?;22
+Wie viele nutzbare Hostadressen hat ein /24-Netz?;254
+Wie lautet die Subnetzmaske zu /26?;255.255.255.192
+Wie lang ist eine IPv6-Adresse?;128 Bit
+Was macht NAT?;Übersetzt private IP-Adressen in öffentliche (und zurück), meist am Router
+Was ist der Unterschied zwischen RAID 0 und RAID 1?;RAID 0 verteilt Daten ohne Redundanz (Striping), RAID 1 spiegelt sie (Mirroring)
+Wie viele Festplatten braucht RAID 5 mindestens?;Drei
+Was bedeutet die 3-2-1-Regel beim Backup?;3 Kopien, auf 2 verschiedenen Medien, davon 1 außer Haus
+Was ist der Unterschied zwischen differenziellem und inkrementellem Backup?;Differenziell sichert alle Änderungen seit dem letzten Vollbackup, inkrementell nur die seit dem letzten Backup
+Was unterscheidet symmetrische von asymmetrischer Verschlüsselung?;Symmetrisch nutzt einen gemeinsamen Schlüssel, asymmetrisch ein Paar aus öffentlichem und privatem Schlüssel
+Wofür stehen die drei Schutzziele der IT-Sicherheit (CIA)?;Vertraulichkeit, Integrität, Verfügbarkeit
+Was ist ein Primärschlüssel?;Ein Attribut (oder eine Kombination), das jeden Datensatz einer Tabelle eindeutig identifiziert
+Was ist ein Fremdschlüssel?;Ein Attribut, das auf den Primärschlüssel einer anderen Tabelle verweist
+Was verlangt die erste Normalform?;Alle Attributwerte sind atomar, es gibt keine Wiederholungsgruppen
+"Was liefert in SQL ein INNER JOIN?";"Nur Datensätze, die in beiden Tabellen einen passenden Partner haben"
+Wofür steht ACID bei Datenbanken?;Atomicity, Consistency, Isolation, Durability
+Was ist der Unterschied zwischen Compiler und Interpreter?;Der Compiler übersetzt das ganze Programm vorab, der Interpreter führt es Anweisung für Anweisung aus
+Was bedeutet Vererbung in der Objektorientierung?;Eine Klasse übernimmt Attribute und Methoden einer Oberklasse und kann sie erweitern
+Was ist ein Unit-Test?;Ein automatisierter Test, der eine einzelne Funktion oder Klasse isoliert prüft
+Was macht der Befehl git commit?;Speichert die vorgemerkten Änderungen als neuen Stand im lokalen Repository
+"Was ist der Unterschied zwischen git fetch und git pull?";"fetch lädt neue Commits nur herunter; pull lädt sie herunter und führt sie in den aktuellen Branch zusammen"
+Was ist der Unterschied zwischen einer VM und einem Container?;Eine VM bringt ein eigenes Betriebssystem mit, ein Container teilt sich den Kernel des Hosts
+Wofür steht SLA?;Service Level Agreement – vertraglich zugesicherte Dienstgüte, z. B. Verfügbarkeit
