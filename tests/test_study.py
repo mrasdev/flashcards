@@ -1,4 +1,6 @@
+import re
 from datetime import timedelta
+from html.parser import HTMLParser
 
 import pytest
 
@@ -214,3 +216,161 @@ def test_repeated_answer_in_same_session_is_ignored(client, deck, add_card, cloc
 
 def test_answer_for_unknown_card_returns_404(client, clock):
     assert answer(client, 999, True, clock.now).status_code == 404
+
+
+# --- Tastatursteuerung -------------------------------------------------------
+
+KEYBOARD_SCRIPT = '<script src="/static/study.js" defer></script>'
+
+
+def tag_with(html, tag, attribute):
+    """Liefert das erste öffnende Tag, das das angegebene Attribut enthält."""
+    for match in re.finditer(rf"<{tag}\b[^>]*>", html):
+        if attribute in match.group(0):
+            return match.group(0)
+    raise AssertionError(f"no <{tag}> with {attribute} found")
+
+
+def has_key_hint(html):
+    return 'class="key-hint"' in html
+
+
+def test_study_page_loads_keyboard_script(client, deck, add_card):
+    add_card("hola")
+
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert html.count(KEYBOARD_SCRIPT) == 1
+
+
+def test_keyboard_script_is_served(client):
+    response = client.get("/static/study.js")
+
+    assert response.status_code == 200
+    assert "javascript" in response.headers["content-type"]
+
+
+def test_other_pages_do_not_load_keyboard_script(client, deck):
+    assert "study.js" not in client.get("/").text
+    assert "study.js" not in client.get(f"/decks/{deck['id']}").text
+
+
+def test_answer_partial_does_not_reload_script(client, deck, add_card, clock):
+    first = add_card("hola")
+    add_card("adiós")
+    started = clock.now
+    clock.tick()
+
+    response = answer(client, first, True, started, headers=HTMX)
+
+    assert "<script" not in response.text
+
+
+def test_study_page_shows_key_hint(client, deck, add_card):
+    add_card("hola")
+
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert has_key_hint(html)
+    assert "<kbd>Leertaste</kbd>" in html
+    assert "<kbd>J</kbd>" in html
+    assert "<kbd>N</kbd>" in html
+
+
+def test_next_card_partial_shows_key_hint(client, deck, add_card, clock):
+    first = add_card("hola")
+    add_card("adiós")
+    started = clock.now
+    clock.tick()
+
+    response = answer(client, first, True, started, headers=HTMX)
+
+    assert "adiós" in response.text
+    assert has_key_hint(response.text)
+
+
+def test_key_hint_is_hidden_when_session_is_over(client, deck, add_card, clock):
+    card_id = add_card("hola")
+    started = clock.now
+    clock.tick()
+
+    postponed = answer(client, card_id, False, started, headers=HTMX)
+
+    assert "Sitzung beendet." in postponed.text
+    assert not has_key_hint(postponed.text)
+
+    clock.tick()
+    started = clock.now
+    clock.tick()
+    done = answer(client, card_id, True, started, headers=HTMX)
+
+    assert "Fertig für heute!" in done.text
+    assert not has_key_hint(done.text)
+
+
+def test_study_page_without_due_cards_has_no_key_hint(client, deck):
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert "Fertig für heute!" in html
+    assert not has_key_hint(html)
+
+
+def test_study_card_has_keyboard_hooks(client, deck, add_card):
+    add_card("hola")
+
+    html = client.get(f"/decks/{deck['id']}/study").text
+
+    assert tag_with(html, "details", "data-study-reveal")
+    assert 'data-study-key="j"' in tag_with(html, "button", 'value="true"')
+    assert 'data-study-key="n"' in tag_with(html, "button", 'value="false"')
+
+
+VOID_TAGS = {"br", "hr", "img", "input", "link", "meta"}
+
+
+class KeyButtonFinder(HTMLParser):
+    """Merkt sich zu jedem Button mit data-study-key die Kette seiner Vorfahren."""
+
+    def __init__(self):
+        super().__init__()
+        self.open_tags = []
+        self.ancestors = {}
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "button" and "data-study-key" in attrs:
+            self.ancestors[attrs["data-study-key"]] = list(self.open_tags)
+        if tag not in VOID_TAGS:
+            self.open_tags.append((tag, attrs))
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.open_tags) - 1, -1, -1):
+            if self.open_tags[index][0] == tag:
+                del self.open_tags[index:]
+                break
+
+
+def test_key_buttons_are_nested_in_reveal_details_inside_study(client, deck, add_card):
+    add_card("hola")
+    finder = KeyButtonFinder()
+
+    finder.feed(client.get(f"/decks/{deck['id']}/study").text)
+
+    # study.js sucht "#study details[data-study-reveal]" und darin die Buttons.
+    assert set(finder.ancestors) == {"j", "n"}
+    for ancestors in finder.ancestors.values():
+        study = [i for i, (_, attrs) in enumerate(ancestors) if attrs.get("id") == "study"]
+        reveal = [
+            i
+            for i, (tag, attrs) in enumerate(ancestors)
+            if tag == "details" and "data-study-reveal" in attrs
+        ]
+        assert study and reveal
+        assert study[0] < reveal[0]
+
+
+def test_keyboard_script_uses_the_template_hooks(client):
+    script = client.get("/static/study.js").text
+
+    assert "data-study-reveal" in script
+    assert "data-study-key" in script
