@@ -1,5 +1,6 @@
 <tr id="deck-{{ deck.id }}">
   <td><a href="/decks/{{ deck.id }}">{{ deck.name }}</a></td>
+  <td data-stat="due-today">{{ due_counts.get(deck.id, 0) }}</td>
   <td class="actions">
     <button type="button" class="secondary outline"
             hx-get="/decks/{{ deck.id }}/edit" hx-target="closest tr" hx-swap="outerHTML">

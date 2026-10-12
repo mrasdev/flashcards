@@ -1,0 +1,28 @@
+<article id="stats">
+  <header><strong>Statistik</strong></header>
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          {% for box in stats.boxes %}
+          <th scope="col">Fach {{ box }}</th>
+          {% endfor %}
+          <th scope="col">Gesamt</th>
+          <th scope="col">Heute fällig</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {% for box, count in stats.boxes.items() %}
+          <td data-box="{{ box }}">{{ count }}</td>
+          {% endfor %}
+          <td data-stat="total">{{ stats.total }}</td>
+          <td data-stat="due-today"><strong>{{ stats.due_today }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <a href="/decks/{{ deck.id }}/study" role="button">
+    {% if stats.due_today %}Lernen ({{ stats.due_today }} fällig){% else %}Lernen{% endif %}
+  </a>
+</article>

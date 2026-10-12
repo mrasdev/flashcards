@@ -8,6 +8,7 @@ from lernkartei.schemas import (
     CardUpdate,
     DeckCreate,
     DeckRead,
+    DeckStatsRead,
     DeckUpdate,
     ReviewCreate,
 )
@@ -95,3 +96,8 @@ def review_card(
         return services.review_card(session, card, data.known, today, now)
     except services.CardNotDueError:
         raise HTTPException(status.HTTP_409_CONFLICT, "Karte ist heute nicht fällig") from None
+
+
+@router.get("/decks/{deck_id}/stats", response_model=DeckStatsRead, tags=["Statistik"])
+def read_deck_stats(deck: DeckDep, session: SessionDep, today: TodayDep):
+    return services.deck_stats(session, deck, today)

@@ -1,4 +1,5 @@
 <section id="cards">
+  {% include "partials/stats.html" %}
   <h2>Karten</h2>
   <form class="inline-form" method="post" action="/decks/{{ deck.id }}/cards"
         hx-post="/decks/{{ deck.id }}/cards" hx-target="#cards" hx-swap="outerHTML">

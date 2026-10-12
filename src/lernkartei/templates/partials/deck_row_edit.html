@@ -1,5 +1,5 @@
 <tr id="deck-{{ deck.id }}">
-  <td colspan="2">
+  <td colspan="3">
     <form class="inline-form" hx-put="/decks/{{ deck.id }}" hx-target="closest tr" hx-swap="outerHTML">
       <input type="text" name="name" value="{{ name }}" aria-label="Neuer Name" required autofocus
              {% if error %}aria-invalid="true"{% endif %}>

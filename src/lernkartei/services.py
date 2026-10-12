@@ -1,9 +1,10 @@
 """Datenbankoperationen, die JSON-API und HTML-Oberfläche gemeinsam nutzen."""
 
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, or_, select
+from sqlmodel import Session, func, or_, select
 
 from lernkartei import leitner
 from lernkartei.models import Card, Deck
@@ -132,3 +133,31 @@ def review_card(session: Session, card: Card, known: bool, today: date, now: dat
     session.commit()
     session.refresh(card)
     return card
+
+
+@dataclass
+class DeckStats:
+    boxes: dict[int, int]
+    total: int
+    due_today: int
+
+
+def deck_stats(session: Session, deck: Deck, today: date) -> DeckStats:
+    # Alle Fächer vorbelegen, damit auch leere Fächer mit 0 erscheinen.
+    boxes = dict.fromkeys(leitner.BOX_INTERVALS, 0)
+    rows = session.exec(
+        select(Card.box, func.count()).where(Card.deck_id == deck.id).group_by(Card.box)
+    ).all()
+    boxes.update(dict(rows))
+    due_today = session.exec(
+        select(func.count()).where(Card.deck_id == deck.id, Card.due_date <= today)
+    ).one()
+    return DeckStats(boxes=boxes, total=sum(boxes.values()), due_today=due_today)
+
+
+def due_counts(session: Session, today: date) -> dict[int, int]:
+    """Anzahl heute fälliger Karten je Deck-ID; Decks ohne fällige Karten fehlen."""
+    rows = session.exec(
+        select(Card.deck_id, func.count()).where(Card.due_date <= today).group_by(Card.deck_id)
+    ).all()
+    return dict(rows)

@@ -32,14 +32,26 @@ def _render(request: Request, page: str, partial: str, context: dict, failed: bo
     return templates.TemplateResponse(request, page, context, status_code=status_code)
 
 
-def _deck_context(session, error: str | None = None, name: str = "") -> dict:
-    return {"decks": services.list_decks(session), "error": error, "name": name}
+def _deck_context(session, today: date, error: str | None = None, name: str = "") -> dict:
+    return {
+        "decks": services.list_decks(session),
+        "due_counts": services.due_counts(session, today),
+        "error": error,
+        "name": name,
+    }
 
 
-def _card_context(session, deck, error: str | None = None, front: str = "", back: str = "") -> dict:
+def _deck_row_context(session, deck, today: date) -> dict:
+    return {"deck": deck, "due_counts": services.due_counts(session, today)}
+
+
+def _card_context(
+    session, deck, today: date, error: str | None = None, front: str = "", back: str = ""
+) -> dict:
     return {
         "deck": deck,
         "cards": services.list_cards(session, deck),
+        "stats": services.deck_stats(session, deck, today),
         "error": error,
         "front": front,
         "back": back,
@@ -47,12 +59,12 @@ def _card_context(session, deck, error: str | None = None, front: str = "", back
 
 
 @router.get("/")
-def deck_list(request: Request, session: SessionDep):
-    return templates.TemplateResponse(request, "decks.html", _deck_context(session))
+def deck_list(request: Request, session: SessionDep, today: TodayDep):
+    return templates.TemplateResponse(request, "decks.html", _deck_context(session, today))
 
 
 @router.post("/decks")
-def create_deck(request: Request, session: SessionDep, name: FormText = ""):
+def create_deck(request: Request, session: SessionDep, today: TodayDep, name: FormText = ""):
     error = None
     try:
         services.create_deck(session, name)
@@ -62,18 +74,20 @@ def create_deck(request: Request, session: SessionDep, name: FormText = ""):
         error = ERROR_DECK_NAME_TAKEN
     if error is None and not _is_htmx(request):
         return RedirectResponse("/", status.HTTP_303_SEE_OTHER)
-    context = _deck_context(session, error, name if error else "")
+    context = _deck_context(session, today, error, name if error else "")
     return _render(request, "decks.html", "partials/deck_section.html", context, bool(error))
 
 
 @router.get("/decks/{deck_id}")
-def deck_detail(request: Request, deck: DeckDep, session: SessionDep):
-    return templates.TemplateResponse(request, "deck_detail.html", _card_context(session, deck))
+def deck_detail(request: Request, deck: DeckDep, session: SessionDep, today: TodayDep):
+    context = _card_context(session, deck, today)
+    return templates.TemplateResponse(request, "deck_detail.html", context)
 
 
 @router.get("/decks/{deck_id}/row")
-def deck_row(request: Request, deck: DeckDep):
-    return templates.TemplateResponse(request, "partials/deck_row.html", {"deck": deck})
+def deck_row(request: Request, deck: DeckDep, session: SessionDep, today: TodayDep):
+    context = _deck_row_context(session, deck, today)
+    return templates.TemplateResponse(request, "partials/deck_row.html", context)
 
 
 @router.get("/decks/{deck_id}/edit")
@@ -83,7 +97,9 @@ def deck_edit_form(request: Request, deck: DeckDep):
 
 
 @router.put("/decks/{deck_id}")
-def rename_deck(request: Request, deck: DeckDep, session: SessionDep, name: FormText = ""):
+def rename_deck(
+    request: Request, deck: DeckDep, session: SessionDep, today: TodayDep, name: FormText = ""
+):
     try:
         services.rename_deck(session, deck, name)
     except services.EmptyTextError:
@@ -91,16 +107,17 @@ def rename_deck(request: Request, deck: DeckDep, session: SessionDep, name: Form
     except services.DuplicateDeckNameError:
         error = ERROR_DECK_NAME_TAKEN
     else:
-        return templates.TemplateResponse(request, "partials/deck_row.html", {"deck": deck})
+        context = _deck_row_context(session, deck, today)
+        return templates.TemplateResponse(request, "partials/deck_row.html", context)
     context = {"deck": deck, "name": name, "error": error}
     return templates.TemplateResponse(request, "partials/deck_row_edit.html", context)
 
 
 @router.delete("/decks/{deck_id}")
-def delete_deck(request: Request, deck: DeckDep, session: SessionDep):
+def delete_deck(request: Request, deck: DeckDep, session: SessionDep, today: TodayDep):
     services.delete_deck(session, deck)
     return templates.TemplateResponse(
-        request, "partials/deck_section.html", _deck_context(session)
+        request, "partials/deck_section.html", _deck_context(session, today)
     )
 
 
@@ -121,9 +138,9 @@ def create_card(
     if error is None and not _is_htmx(request):
         return RedirectResponse(f"/decks/{deck.id}", status.HTTP_303_SEE_OTHER)
     context = (
-        _card_context(session, deck, error, front, back)
+        _card_context(session, deck, today, error, front, back)
         if error
-        else _card_context(session, deck)
+        else _card_context(session, deck, today)
     )
     return _render(
         request, "deck_detail.html", "partials/card_section.html", context, bool(error)
@@ -158,11 +175,11 @@ def update_card(
 
 
 @router.delete("/cards/{card_id}")
-def delete_card(request: Request, card: CardDep, session: SessionDep):
+def delete_card(request: Request, card: CardDep, session: SessionDep, today: TodayDep):
     deck = card.deck
     services.delete_card(session, card)
     return templates.TemplateResponse(
-        request, "partials/card_section.html", _card_context(session, deck)
+        request, "partials/card_section.html", _card_context(session, deck, today)
     )
 
 
