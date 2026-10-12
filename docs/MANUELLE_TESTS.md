@@ -4,9 +4,9 @@ Verhalten, das die pytest-Suite nicht abdeckt, weil es erst im Browser entsteht.
 
 ## Tastatursteuerung im Lernmodus
 
-Betrifft `src/lernkartei/static/study.js` und `src/lernkartei/templates/partials/study_card.html`.
+Betrifft `src/flashcards/static/study.js` und `src/flashcards/templates/partials/study_card.html`.
 
-Vorbereitung: `uvicorn lernkartei.main:app --reload`, ein Deck mit mindestens drei fälligen Karten öffnen und auf „Lernen" klicken.
+Vorbereitung: `uvicorn flashcards.main:app --reload`, ein Deck mit mindestens drei fälligen Karten öffnen und auf „Lernen" klicken.
 
 ### Aufdecken
 
