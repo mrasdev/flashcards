@@ -1,1 +1,1 @@
-"""Lernkartei: Karteikarten-Trainer mit Leitner-System."""
+"""Flashcards: Karteikarten-Trainer mit Leitner-System."""
