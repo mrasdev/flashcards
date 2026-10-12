@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, UploadFile, status
 
-from lernkartei import services
+from lernkartei import csv_import, services
 from lernkartei.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
 from lernkartei.schemas import (
     CardCreate,
@@ -10,6 +10,7 @@ from lernkartei.schemas import (
     DeckRead,
     DeckStatsRead,
     DeckUpdate,
+    ImportResultRead,
     ReviewCreate,
 )
 
@@ -101,3 +102,11 @@ def review_card(
 @router.get("/decks/{deck_id}/stats", response_model=DeckStatsRead, tags=["Statistik"])
 def read_deck_stats(deck: DeckDep, session: SessionDep, today: TodayDep):
     return services.deck_stats(session, deck, today)
+
+
+@router.post("/decks/{deck_id}/import", response_model=ImportResultRead, tags=["Import"])
+def import_cards(file: UploadFile, deck: DeckDep, session: SessionDep, today: TodayDep):
+    data = file.file.read(csv_import.MAX_UPLOAD_BYTES + 1)
+    if len(data) > csv_import.MAX_UPLOAD_BYTES:
+        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "Die Datei ist größer als 1 MB")
+    return csv_import.import_csv(session, deck, data, today)
