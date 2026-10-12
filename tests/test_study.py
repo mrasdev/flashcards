@@ -1,36 +1,10 @@
 from datetime import timedelta
 
 import pytest
-from sqlmodel import Session
 
-from lernkartei.models import Card
 from tests.conftest import TODAY
 
 HTMX = {"HX-Request": "true"}
-
-
-@pytest.fixture
-def deck(client):
-    return client.post("/api/decks", json={"name": "Spanisch"}).json()
-
-
-@pytest.fixture
-def add_card(client, engine, deck):
-    """Legt eine Karte an und setzt bei Bedarf Fach und Fälligkeit direkt in der DB."""
-
-    def _add(front, back="x", box=1, due_in_days=0, deck_id=None):
-        card = client.post(
-            f"/api/decks/{deck_id or deck['id']}/cards", json={"front": front, "back": back}
-        ).json()
-        with Session(engine) as session:
-            stored = session.get(Card, card["id"])
-            stored.box = box
-            stored.due_date = TODAY + timedelta(days=due_in_days)
-            session.add(stored)
-            session.commit()
-        return card["id"]
-
-    return _add
 
 
 def get_card(client, card_id):

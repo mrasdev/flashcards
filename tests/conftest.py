@@ -8,6 +8,7 @@ from sqlmodel import Session
 from lernkartei.db import get_session, init_db, make_engine
 from lernkartei.deps import get_now, get_today
 from lernkartei.main import app
+from lernkartei.models import Card
 
 # Festes "Heute" für alle Tests, die über die App laufen.
 TODAY = date(2026, 3, 10)
@@ -56,3 +57,27 @@ def client(engine, clock):
     # Ohne "with": der Lifespan läuft nicht, es entsteht keine echte DB-Datei.
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def deck(client):
+    return client.post("/api/decks", json={"name": "Spanisch"}).json()
+
+
+@pytest.fixture
+def add_card(client, engine, deck):
+    """Legt eine Karte an und setzt bei Bedarf Fach und Fälligkeit direkt in der DB."""
+
+    def _add(front, back="x", box=1, due_in_days=0, deck_id=None):
+        card = client.post(
+            f"/api/decks/{deck_id or deck['id']}/cards", json={"front": front, "back": back}
+        ).json()
+        with Session(engine) as session:
+            stored = session.get(Card, card["id"])
+            stored.box = box
+            stored.due_date = TODAY + timedelta(days=due_in_days)
+            session.add(stored)
+            session.commit()
+        return card["id"]
+
+    return _add

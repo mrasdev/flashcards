@@ -48,3 +48,11 @@ class CardRead(BaseModel):
 
 class ReviewCreate(BaseModel):
     known: bool
+
+
+class DeckStatsRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    boxes: dict[int, int]
+    total: int
+    due_today: int
