@@ -26,7 +26,7 @@ Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, 
 ## Annahmen
 
 - Einzelnutzer, keine Anmeldung.
-- Kein Migrationswerkzeug: Tabellen per `SQLModel.metadata.create_all` beim Start. DB-Pfad über Umgebungsvariable `LERNKARTEI_DB`, Standard `lernkartei.db` (in `.gitignore`).
+- Kein Migrationswerkzeug: Tabellen per `SQLModel.metadata.create_all` beim Start. DB-Pfad über Umgebungsvariable `FLASHCARDS_DB`, Standard `flashcards.db` (in `.gitignore`).
 - Decknamen sind eindeutig; doppelter Name ergibt 409 bzw. Formularfehler.
 - Deck löschen löscht dessen Karten mit (Rückfrage per `hx-confirm`).
 - Karte bearbeiten ändert Fach und Fälligkeit nicht.
