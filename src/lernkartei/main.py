@@ -1,6 +1,19 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-app = FastAPI(title="Lernkartei")
+from lernkartei.db import init_db
+from lernkartei.routers import api
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(title="Lernkartei", lifespan=lifespan)
+app.include_router(api.router)
 
 
 @app.get("/health")
