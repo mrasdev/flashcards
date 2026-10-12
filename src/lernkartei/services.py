@@ -76,10 +76,10 @@ def update_card(
     session: Session, card: Card, front: str | None = None, back: str | None = None
 ) -> Card:
     # Fach und Fälligkeit bleiben beim Bearbeiten unverändert.
-    if front is not None:
-        card.front = _clean(front)
-    if back is not None:
-        card.back = _clean(back)
+    # Erst beide Texte prüfen, damit bei einem Fehler nichts halb geändert ist.
+    new_front = card.front if front is None else _clean(front)
+    new_back = card.back if back is None else _clean(back)
+    card.front, card.back = new_front, new_back
     session.add(card)
     session.commit()
     session.refresh(card)

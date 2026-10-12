@@ -1,37 +1,10 @@
-from datetime import date
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session
+from fastapi import APIRouter, HTTPException, status
 
 from lernkartei import services
-from lernkartei.db import get_session
-from lernkartei.deps import get_today
-from lernkartei.models import Card, Deck
+from lernkartei.deps import CardDep, DeckDep, SessionDep, TodayDep
 from lernkartei.schemas import CardCreate, CardRead, CardUpdate, DeckCreate, DeckRead, DeckUpdate
 
 router = APIRouter(prefix="/api")
-
-SessionDep = Annotated[Session, Depends(get_session)]
-TodayDep = Annotated[date, Depends(get_today)]
-
-
-def deck_or_404(deck_id: int, session: SessionDep) -> Deck:
-    deck = services.get_deck(session, deck_id)
-    if deck is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Deck nicht gefunden")
-    return deck
-
-
-def card_or_404(card_id: int, session: SessionDep) -> Card:
-    card = services.get_card(session, card_id)
-    if card is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Karte nicht gefunden")
-    return card
-
-
-DeckDep = Annotated[Deck, Depends(deck_or_404)]
-CardDep = Annotated[Card, Depends(card_or_404)]
 
 
 def _duplicate_name() -> HTTPException:

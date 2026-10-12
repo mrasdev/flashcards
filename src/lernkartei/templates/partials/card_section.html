@@ -1,0 +1,32 @@
+<section id="cards">
+  <h2>Karten</h2>
+  <form class="inline-form" method="post" action="/decks/{{ deck.id }}/cards"
+        hx-post="/decks/{{ deck.id }}/cards" hx-target="#cards" hx-swap="outerHTML">
+    <input type="text" name="front" value="{{ front }}" placeholder="Vorderseite"
+           aria-label="Vorderseite" required {% if error %}aria-invalid="true"{% endif %}>
+    <input type="text" name="back" value="{{ back }}" placeholder="Rückseite"
+           aria-label="Rückseite" required {% if error %}aria-invalid="true"{% endif %}>
+    <button type="submit">Karte anlegen</button>
+  </form>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+  {% if cards %}
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Vorderseite</th>
+        <th scope="col">Rückseite</th>
+        <th scope="col">Fach</th>
+        <th scope="col"><span class="visually-hidden">Aktionen</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for card in cards %}
+      {% include "partials/card_row.html" %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Dieses Deck enthält noch keine Karten.</p>
+  {% endif %}
+</section>

@@ -1,0 +1,16 @@
+<tr id="card-{{ card.id }}">
+  <td colspan="4">
+    <form class="inline-form" hx-put="/cards/{{ card.id }}" hx-target="closest tr" hx-swap="outerHTML">
+      <input type="text" name="front" value="{{ front }}" aria-label="Vorderseite" required autofocus
+             {% if error %}aria-invalid="true"{% endif %}>
+      <input type="text" name="back" value="{{ back }}" aria-label="Rückseite" required
+             {% if error %}aria-invalid="true"{% endif %}>
+      <button type="submit">Speichern</button>
+      <button type="button" class="secondary outline"
+              hx-get="/cards/{{ card.id }}/row" hx-target="closest tr" hx-swap="outerHTML">
+        Abbrechen
+      </button>
+    </form>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  </td>
+</tr>
