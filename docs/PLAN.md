@@ -21,6 +21,7 @@ Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, 
 - **Fälligkeit:** Kalendertage. Die Karte speichert ein `due_date` (Datum); fällig ist, was `due_date <= heute` hat.
 - **Lernsitzung:** Jede Karte erscheint pro Sitzung nur einmal. Nicht gewusste Karten kommen erst beim nächsten Start des Lernmodus wieder.
 - **CSV:** keine Kopfzeile, Duplikate (gleiche Vorder- und Rückseite im Deck) werden übersprungen.
+- **Tastatursteuerung ohne Abschalter:** Die Einzeltasten J/N im Lernmodus lassen sich nicht abschalten oder umbelegen, wie es WCAG 2.1.4 verlangen würde. Bewusst so entschieden: Einzelnutzer-App, keine Konformitätsanforderung, und J/N wirken nur bei aufgedeckter Karte.
 
 ## Annahmen
 

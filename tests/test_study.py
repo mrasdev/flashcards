@@ -1,5 +1,6 @@
 import re
 from datetime import timedelta
+from html.parser import HTMLParser
 
 import pytest
 
@@ -322,3 +323,54 @@ def test_study_card_has_keyboard_hooks(client, deck, add_card):
     assert tag_with(html, "details", "data-study-reveal")
     assert 'data-study-key="j"' in tag_with(html, "button", 'value="true"')
     assert 'data-study-key="n"' in tag_with(html, "button", 'value="false"')
+
+
+VOID_TAGS = {"br", "hr", "img", "input", "link", "meta"}
+
+
+class KeyButtonFinder(HTMLParser):
+    """Merkt sich zu jedem Button mit data-study-key die Kette seiner Vorfahren."""
+
+    def __init__(self):
+        super().__init__()
+        self.open_tags = []
+        self.ancestors = {}
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "button" and "data-study-key" in attrs:
+            self.ancestors[attrs["data-study-key"]] = list(self.open_tags)
+        if tag not in VOID_TAGS:
+            self.open_tags.append((tag, attrs))
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.open_tags) - 1, -1, -1):
+            if self.open_tags[index][0] == tag:
+                del self.open_tags[index:]
+                break
+
+
+def test_key_buttons_are_nested_in_reveal_details_inside_study(client, deck, add_card):
+    add_card("hola")
+    finder = KeyButtonFinder()
+
+    finder.feed(client.get(f"/decks/{deck['id']}/study").text)
+
+    # study.js sucht "#study details[data-study-reveal]" und darin die Buttons.
+    assert set(finder.ancestors) == {"j", "n"}
+    for ancestors in finder.ancestors.values():
+        study = [i for i, (_, attrs) in enumerate(ancestors) if attrs.get("id") == "study"]
+        reveal = [
+            i
+            for i, (tag, attrs) in enumerate(ancestors)
+            if tag == "details" and "data-study-reveal" in attrs
+        ]
+        assert study and reveal
+        assert study[0] < reveal[0]
+
+
+def test_keyboard_script_uses_the_template_hooks(client):
+    script = client.get("/static/study.js").text
+
+    assert "data-study-reveal" in script
+    assert "data-study-key" in script
