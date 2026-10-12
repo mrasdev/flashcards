@@ -6,7 +6,7 @@ Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, 
 
 - [x] Phase 0 – Projektgerüst
 - [x] Phase 1 – Datenmodell
-- [ ] Phase 2 – Leitner-Logik (reine Funktionen)
+- [x] Phase 2 – Leitner-Logik (reine Funktionen)
 - [ ] Phase 3 – REST-API (Decks und Karten)
 - [ ] Phase 4 – HTML-Oberfläche (Decks und Karten)
 - [ ] Phase 5a – Lernmodus
