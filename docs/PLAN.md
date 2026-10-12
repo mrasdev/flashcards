@@ -11,8 +11,8 @@ Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, 
 - [x] Phase 4 – HTML-Oberfläche (Decks und Karten)
 - [x] Phase 5a – Lernmodus
 - [x] Phase 5b – Statistik
-- [ ] Phase 5c – CSV-Import
-- [ ] Verifikation am Ende
+- [x] Phase 5c – CSV-Import
+- [x] Verifikation am Ende
 
 ## Entscheidungen
 

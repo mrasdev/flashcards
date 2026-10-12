@@ -30,4 +30,20 @@
   {% else %}
   <p>Dieses Deck enthält noch keine Karten.</p>
   {% endif %}
+
+  <h2>CSV-Import</h2>
+  {% if import_result %}{% include "partials/import_result.html" %}{% endif %}
+  <form class="inline-form" method="post" action="/decks/{{ deck.id }}/import"
+        enctype="multipart/form-data"
+        hx-post="/decks/{{ deck.id }}/import" hx-encoding="multipart/form-data"
+        hx-target="#cards" hx-swap="outerHTML">
+    <input type="file" name="file" accept=".csv,text/csv,text/plain" aria-label="CSV-Datei"
+           required {% if import_error %}aria-invalid="true"{% endif %}>
+    <button type="submit">Importieren</button>
+  </form>
+  {% if import_error %}<p class="error" role="alert">{{ import_error }}</p>{% endif %}
+  <p><small>
+    Format: eine Karte pro Zeile als <code>vorne;hinten</code>, ohne Kopfzeile.
+    Bereits vorhandene Karten werden übersprungen.
+  </small></p>
 </section>

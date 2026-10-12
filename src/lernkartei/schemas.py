@@ -56,3 +56,18 @@ class DeckStatsRead(BaseModel):
     boxes: dict[int, int]
     total: int
     due_today: int
+
+
+class RowErrorRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    line: int
+    message: str
+
+
+class ImportResultRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    imported: int
+    skipped: int
+    errors: list[RowErrorRead]

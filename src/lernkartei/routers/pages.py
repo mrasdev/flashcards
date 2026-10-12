@@ -2,11 +2,11 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Request, status
+from fastapi import APIRouter, Form, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from lernkartei import services
+from lernkartei import csv_import, services
 from lernkartei.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
 
 router = APIRouter(default_response_class=HTMLResponse, include_in_schema=False)
@@ -17,6 +17,8 @@ FormText = Annotated[str, Form()]
 ERROR_DECK_NAME_EMPTY = "Bitte einen Namen eingeben."
 ERROR_DECK_NAME_TAKEN = "Ein Deck mit diesem Namen existiert bereits."
 ERROR_CARD_TEXT_EMPTY = "Vorder- und Rückseite dürfen nicht leer sein."
+ERROR_IMPORT_NO_FILE = "Bitte eine CSV-Datei auswählen."
+ERROR_IMPORT_TOO_LARGE = "Die Datei ist größer als 1 MB."
 
 
 def _is_htmx(request: Request) -> bool:
@@ -46,7 +48,14 @@ def _deck_row_context(session, deck, today: date) -> dict:
 
 
 def _card_context(
-    session, deck, today: date, error: str | None = None, front: str = "", back: str = ""
+    session,
+    deck,
+    today: date,
+    error: str | None = None,
+    front: str = "",
+    back: str = "",
+    import_result: csv_import.ImportResult | None = None,
+    import_error: str | None = None,
 ) -> dict:
     return {
         "deck": deck,
@@ -55,6 +64,8 @@ def _card_context(
         "error": error,
         "front": front,
         "back": back,
+        "import_result": import_result,
+        "import_error": import_error,
     }
 
 
@@ -142,6 +153,29 @@ def create_card(
         if error
         else _card_context(session, deck, today)
     )
+    return _render(
+        request, "deck_detail.html", "partials/card_section.html", context, bool(error)
+    )
+
+
+@router.post("/decks/{deck_id}/import")
+def import_cards(
+    request: Request,
+    deck: DeckDep,
+    session: SessionDep,
+    today: TodayDep,
+    file: UploadFile | None = None,
+):
+    result = error = None
+    if file is None or not file.filename:
+        error = ERROR_IMPORT_NO_FILE
+    else:
+        data = file.file.read(csv_import.MAX_UPLOAD_BYTES + 1)
+        if len(data) > csv_import.MAX_UPLOAD_BYTES:
+            error = ERROR_IMPORT_TOO_LARGE
+        else:
+            result = csv_import.import_csv(session, deck, data, today)
+    context = _card_context(session, deck, today, import_result=result, import_error=error)
     return _render(
         request, "deck_detail.html", "partials/card_section.html", context, bool(error)
     )
