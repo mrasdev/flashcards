@@ -44,3 +44,7 @@ class CardRead(BaseModel):
     due_date: date
     last_reviewed_at: datetime | None
     created_at: datetime
+
+
+class ReviewCreate(BaseModel):
+    known: bool

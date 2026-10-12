@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ deck.name }} lernen – Lernkartei{% endblock %}
+{% block content %}
+<p><a href="/decks/{{ deck.id }}">← Zurück zum Deck</a></p>
+<h1>{{ deck.name }} lernen</h1>
+{% include "partials/study_card.html" %}
+{% endblock %}

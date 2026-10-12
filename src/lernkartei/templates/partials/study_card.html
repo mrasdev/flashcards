@@ -1,0 +1,36 @@
+<section id="study">
+  {% if card %}
+  <p>
+    Noch {{ remaining }} {{ "Karte" if remaining == 1 else "Karten" }} in dieser Sitzung
+    · Fach {{ card.box }}
+  </p>
+  <article>
+    <p class="study-front">{{ card.front }}</p>
+    <details>
+      <summary role="button" class="secondary">Aufdecken</summary>
+      <p class="study-back">{{ card.back }}</p>
+      <form class="answer-form" method="post" action="/cards/{{ card.id }}/answer"
+            hx-post="/cards/{{ card.id }}/answer" hx-target="#study" hx-swap="outerHTML">
+        <input type="hidden" name="started" value="{{ started.isoformat() }}">
+        <button type="submit" name="known" value="true">Gewusst</button>
+        <button type="submit" name="known" value="false" class="contrast">Nicht gewusst</button>
+      </form>
+    </details>
+  </article>
+  {% elif postponed %}
+  <article>
+    <p>
+      <strong>Sitzung beendet.</strong>
+      {{ postponed }} nicht {{ "gewusste Karte kommt" if postponed == 1 else "gewusste Karten kommen" }}
+      in der nächsten Sitzung wieder.
+    </p>
+    <a href="/decks/{{ deck.id }}/study" role="button">Neue Sitzung starten</a>
+    <a href="/decks/{{ deck.id }}" role="button" class="secondary outline">Zurück zum Deck</a>
+  </article>
+  {% else %}
+  <article>
+    <p><strong>Fertig für heute!</strong> In diesem Deck ist keine Karte mehr fällig.</p>
+    <a href="/decks/{{ deck.id }}" role="button" class="secondary outline">Zurück zum Deck</a>
+  </article>
+  {% endif %}
+</section>
