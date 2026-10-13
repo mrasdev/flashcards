@@ -3,11 +3,11 @@ import pytest
 HTMX = {"HX-Request": "true"}
 
 
-def create_deck(client, name="Spanisch"):
+def create_deck(client, name="Spanish"):
     return client.post("/api/decks", json={"name": name}).json()
 
 
-def create_card(client, deck, front="hola", back="hallo"):
+def create_card(client, deck, front="hola", back="hello"):
     return client.post(
         f"/api/decks/{deck['id']}/cards", json={"front": front, "back": back}
     ).json()
@@ -33,41 +33,41 @@ def test_deck_list_shows_decks(client):
 
     response = client.get("/")
 
-    assert "Spanisch" in response.text
+    assert "Spanish" in response.text
     assert f'href="/decks/{deck["id"]}"' in response.text
 
 
 def test_deck_name_is_escaped(client):
-    create_deck(client, "<b>fett</b>")
+    create_deck(client, "<b>bold</b>")
 
     response = client.get("/")
 
-    assert "<b>fett</b>" not in response.text
-    assert "&lt;b&gt;fett&lt;/b&gt;" in response.text
+    assert "<b>bold</b>" not in response.text
+    assert "&lt;b&gt;bold&lt;/b&gt;" in response.text
 
 
 def test_create_deck_without_htmx_redirects(client):
-    response = client.post("/decks", data={"name": "Spanisch"}, follow_redirects=False)
+    response = client.post("/decks", data={"name": "Spanish"}, follow_redirects=False)
 
     assert response.status_code == 303
     assert response.headers["location"] == "/"
-    assert "Spanisch" in client.get("/").text
+    assert "Spanish" in client.get("/").text
 
 
 def test_create_deck_with_htmx_returns_only_partial(client):
-    response = client.post("/decks", data={"name": "Spanisch"}, headers=HTMX)
+    response = client.post("/decks", data={"name": "Spanish"}, headers=HTMX)
 
     assert response.status_code == 200
     assert not is_full_page(response)
     assert 'id="decks"' in response.text
-    assert "Spanisch" in response.text
+    assert "Spanish" in response.text
 
 
 @pytest.mark.parametrize(
     ("name", "message"),
     [
         ("   ", "Please enter a name."),
-        ("Spanisch", "A deck with this name already exists."),
+        ("Spanish", "A deck with this name already exists."),
     ],
 )
 def test_create_deck_shows_error(client, name, message):
@@ -95,7 +95,7 @@ def test_deck_edit_form_is_prefilled(client):
 
     assert response.status_code == 200
     assert not is_full_page(response)
-    assert 'value="Spanisch"' in response.text
+    assert 'value="Spanish"' in response.text
     assert f'hx-put="/decks/{deck["id"]}"' in response.text
 
 
@@ -121,15 +121,15 @@ def test_rename_deck_returns_row(client):
 
 
 def test_rename_deck_to_existing_name_shows_error_and_keeps_input(client):
-    create_deck(client, "Englisch")
-    deck = create_deck(client, "Spanisch")
+    create_deck(client, "French")
+    deck = create_deck(client, "Spanish")
 
-    response = client.put(f"/decks/{deck['id']}", data={"name": "Englisch"}, headers=HTMX)
+    response = client.put(f"/decks/{deck['id']}", data={"name": "French"}, headers=HTMX)
 
     assert response.status_code == 200
     assert "A deck with this name already exists." in response.text
-    assert 'value="Englisch"' in response.text
-    assert client.get(f"/api/decks/{deck['id']}").json()["name"] == "Spanisch"
+    assert 'value="French"' in response.text
+    assert client.get(f"/api/decks/{deck['id']}").json()["name"] == "Spanish"
 
 
 def test_delete_deck_returns_updated_section(client):
@@ -161,9 +161,9 @@ def test_deck_detail_shows_cards(client):
 
     assert response.status_code == 200
     assert is_full_page(response)
-    assert "<h1>Spanisch</h1>" in response.text
+    assert "<h1>Spanish</h1>" in response.text
     assert "hola" in response.text
-    assert "hallo" in response.text
+    assert "hello" in response.text
 
 
 def test_deck_detail_shows_hint_when_empty(client):
@@ -176,7 +176,7 @@ def test_create_card_with_htmx_returns_only_partial(client):
     deck = create_deck(client)
 
     response = client.post(
-        f"/decks/{deck['id']}/cards", data={"front": "hola", "back": "hallo"}, headers=HTMX
+        f"/decks/{deck['id']}/cards", data={"front": "hola", "back": "hello"}, headers=HTMX
     )
 
     assert response.status_code == 200
@@ -191,7 +191,7 @@ def test_create_card_without_htmx_redirects(client):
 
     response = client.post(
         f"/decks/{deck['id']}/cards",
-        data={"front": "hola", "back": "hallo"},
+        data={"front": "hola", "back": "hello"},
         follow_redirects=False,
     )
 
@@ -220,7 +220,7 @@ def test_card_edit_form_is_prefilled(client):
 
     assert response.status_code == 200
     assert 'value="hola"' in response.text
-    assert 'value="hallo"' in response.text
+    assert 'value="hello"' in response.text
 
 
 def test_card_row_partial_for_cancel(client):
@@ -238,14 +238,14 @@ def test_update_card_returns_row(client):
     card = create_card(client, deck)
 
     response = client.put(
-        f"/cards/{card['id']}", data={"front": "adiós", "back": "tschüss"}, headers=HTMX
+        f"/cards/{card['id']}", data={"front": "adiós", "back": "goodbye"}, headers=HTMX
     )
 
     assert response.status_code == 200
     assert response.text.lstrip().startswith("<tr")
     assert "adiós" in response.text
     stored = client.get(f"/api/cards/{card['id']}").json()
-    assert (stored["front"], stored["back"]) == ("adiós", "tschüss")
+    assert (stored["front"], stored["back"]) == ("adiós", "goodbye")
 
 
 def test_update_card_with_empty_side_changes_nothing(client):
@@ -258,7 +258,7 @@ def test_update_card_with_empty_side_changes_nothing(client):
 
     assert "Front and back must not be empty." in response.text
     stored = client.get(f"/api/cards/{card['id']}").json()
-    assert (stored["front"], stored["back"]) == ("hola", "hallo")
+    assert (stored["front"], stored["back"]) == ("hola", "hello")
 
 
 def test_delete_card_returns_updated_section(client):

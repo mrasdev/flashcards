@@ -40,18 +40,18 @@ def test_stats_count_cards_per_box(client, deck, add_card):
 
 
 def test_due_today_includes_today_and_overdue_but_not_tomorrow(client, deck, add_card):
-    add_card("heute")
-    add_card("überfällig", box=4, due_in_days=-5)
-    add_card("morgen", box=2, due_in_days=1)
+    add_card("today")
+    add_card("overdue", box=4, due_in_days=-5)
+    add_card("tomorrow", box=2, due_in_days=1)
 
     assert get_stats(client, deck["id"])["due_today"] == 2
 
 
 def test_stats_ignore_cards_of_other_decks(client, deck, add_card):
-    other = client.post("/api/decks", json={"name": "Englisch"}).json()
-    add_card("eigen")
-    add_card("fremd", deck_id=other["id"])
-    add_card("fremd2", deck_id=other["id"])
+    other = client.post("/api/decks", json={"name": "French"}).json()
+    add_card("own")
+    add_card("foreign", deck_id=other["id"])
+    add_card("foreign2", deck_id=other["id"])
 
     assert get_stats(client, deck["id"])["total"] == 1
     assert get_stats(client, other["id"])["total"] == 2
@@ -100,7 +100,7 @@ def test_deck_page_of_empty_deck_shows_zero_stats(client, deck):
 
 def test_stats_are_refreshed_when_card_is_added(client, deck):
     response = client.post(
-        f"/decks/{deck['id']}/cards", data={"front": "hola", "back": "hallo"}, headers=HTMX
+        f"/decks/{deck['id']}/cards", data={"front": "hola", "back": "hello"}, headers=HTMX
     )
 
     assert cell(response.text, "data-box", 1) == 1
@@ -116,10 +116,10 @@ def test_stats_are_refreshed_when_card_is_deleted(client, deck, add_card):
 
 
 def test_deck_list_shows_due_count_per_deck(client, deck, add_card):
-    other = client.post("/api/decks", json={"name": "Englisch"}).json()
-    add_card("heute")
-    add_card("überfällig", due_in_days=-1)
-    add_card("morgen", due_in_days=1)
+    other = client.post("/api/decks", json={"name": "French"}).json()
+    add_card("today")
+    add_card("overdue", due_in_days=-1)
+    add_card("tomorrow", due_in_days=1)
 
     html = client.get("/").text
 
@@ -134,7 +134,7 @@ def test_deck_list_shows_due_count_per_deck(client, deck, add_card):
 
 
 def test_deck_row_partial_contains_due_count(client, deck, add_card):
-    add_card("heute")
+    add_card("today")
 
     response = client.get(f"/decks/{deck['id']}/row", headers=HTMX)
 

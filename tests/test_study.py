@@ -25,27 +25,27 @@ def answer(client, card_id, known, started, **kwargs):
 
 
 def test_due_lists_only_due_cards_of_deck(client, deck, add_card):
-    other = client.post("/api/decks", json={"name": "Englisch"}).json()
-    add_card("heute")
-    add_card("überfällig", box=3, due_in_days=-2)
-    add_card("morgen", box=2, due_in_days=1)
-    add_card("fremd", deck_id=other["id"])
+    other = client.post("/api/decks", json={"name": "French"}).json()
+    add_card("today")
+    add_card("overdue", box=3, due_in_days=-2)
+    add_card("tomorrow", box=2, due_in_days=1)
+    add_card("foreign", deck_id=other["id"])
 
     response = client.get(f"/api/decks/{deck['id']}/due")
 
     assert response.status_code == 200
-    assert {card["front"] for card in response.json()} == {"heute", "überfällig"}
+    assert {card["front"] for card in response.json()} == {"today", "overdue"}
 
 
 def test_due_is_ordered_by_box_then_due_date_then_id(client, deck, add_card):
-    add_card("fach3", box=3)
-    add_card("fach1-heute", box=1)
-    add_card("fach1-gestern", box=1, due_in_days=-1)
-    add_card("fach1-heute-2", box=1)
+    add_card("box3", box=3)
+    add_card("box1-today", box=1)
+    add_card("box1-yesterday", box=1, due_in_days=-1)
+    add_card("box1-today-2", box=1)
 
     fronts = [card["front"] for card in client.get(f"/api/decks/{deck['id']}/due").json()]
 
-    assert fronts == ["fach1-gestern", "fach1-heute", "fach1-heute-2", "fach3"]
+    assert fronts == ["box1-yesterday", "box1-today", "box1-today-2", "box3"]
 
 
 @pytest.mark.parametrize(
@@ -99,31 +99,31 @@ def test_deck_page_links_to_study_mode(client, deck):
 
 
 def test_study_page_shows_first_due_card(client, deck, add_card, clock):
-    add_card("fach2", box=2)
-    first = add_card("hola", back="hallo", box=1)
-    add_card("morgen", due_in_days=1)
+    add_card("box2", box=2)
+    first = add_card("hola", back="hello", box=1)
+    add_card("tomorrow", due_in_days=1)
 
     response = client.get(f"/decks/{deck['id']}/study")
 
     assert response.status_code == 200
     assert "<html" in response.text
     assert "hola" in response.text
-    assert "hallo" in response.text
+    assert "hello" in response.text
     assert "Reveal" in response.text
     assert "2 cards left in this session" in response.text
     assert f'action="/cards/{first}/answer"' in response.text
     assert f'value="{clock.now.isoformat()}"' in response.text
-    assert "morgen" not in response.text
+    assert "tomorrow" not in response.text
 
 
 def test_study_page_for_deck_without_due_cards(client, deck, add_card):
-    add_card("morgen", due_in_days=1)
+    add_card("tomorrow", due_in_days=1)
 
     response = client.get(f"/decks/{deck['id']}/study")
 
     assert response.status_code == 200
     assert "Done for today!" in response.text
-    assert "morgen" not in response.text
+    assert "tomorrow" not in response.text
 
 
 def test_known_answer_updates_card_and_shows_next(client, deck, add_card, clock):

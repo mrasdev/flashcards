@@ -61,7 +61,7 @@ def client(engine, clock):
 
 @pytest.fixture
 def deck(client):
-    return client.post("/api/decks", json={"name": "Spanisch"}).json()
+    return client.post("/api/decks", json={"name": "Spanish"}).json()
 
 
 @pytest.fixture
