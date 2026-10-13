@@ -10,7 +10,7 @@ from tests.conftest import TODAY
 HTMX = {"HX-Request": "true"}
 
 
-# --- Parser (reine Funktion) -------------------------------------------------
+# --- Parser (pure function) --------------------------------------------------
 
 
 def test_parse_valid_rows():
@@ -90,7 +90,7 @@ def test_decode_handles_excel_encodings(encoding):
     assert parse_csv(decode(data)).rows == [("Übung", "größer")]
 
 
-# --- Import in die Datenbank -------------------------------------------------
+# --- Import into the database ------------------------------------------------
 
 
 @pytest.fixture
@@ -189,7 +189,7 @@ def test_api_import_errors(client, deck):
     assert client.get(f"/api/decks/{deck['id']}/cards").json() == []
 
 
-# --- Oberfläche --------------------------------------------------------------
+# --- UI ----------------------------------------------------------------------
 
 
 def test_deck_page_contains_import_form(client, deck):

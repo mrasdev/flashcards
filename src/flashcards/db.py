@@ -5,7 +5,7 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
-from flashcards import models  # noqa: F401 - registriert die Tabellen in den Metadaten
+from flashcards import models  # noqa: F401 - registers the tables in the metadata
 
 DATABASE_URL = f"sqlite:///{os.environ.get('FLASHCARDS_DB', 'flashcards.db')}"
 
@@ -13,7 +13,7 @@ DATABASE_URL = f"sqlite:///{os.environ.get('FLASHCARDS_DB', 'flashcards.db')}"
 def make_engine(url: str = DATABASE_URL, **kwargs) -> Engine:
     engine = create_engine(url, connect_args={"check_same_thread": False}, **kwargs)
 
-    # SQLite prüft Fremdschlüssel nur, wenn das pro Verbindung eingeschaltet wird.
+    # SQLite only enforces foreign keys when that is enabled per connection.
     @event.listens_for(engine, "connect")
     def _enable_foreign_keys(dbapi_connection, _connection_record):
         cursor = dbapi_connection.cursor()

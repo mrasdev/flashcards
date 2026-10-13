@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "flashcards"
 version = "0.1.0"
-description = "Karteikarten-Trainer mit Leitner-System als Webapp"
+description = "Flashcard trainer using the Leitner system as a web app"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi",

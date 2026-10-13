@@ -17,7 +17,7 @@ def is_full_page(response):
     return "<html" in response.text
 
 
-# --- Deckliste ---------------------------------------------------------------
+# --- Deck list ---------------------------------------------------------------
 
 
 def test_deck_list_shows_hint_when_empty(client):
@@ -150,7 +150,7 @@ def test_delete_button_asks_for_confirmation(client):
     assert "hx-confirm=" in client.get("/").text
 
 
-# --- Deckseite mit Karten ----------------------------------------------------
+# --- Deck page with cards ----------------------------------------------------
 
 
 def test_deck_detail_shows_cards(client):
@@ -272,7 +272,7 @@ def test_delete_card_returns_updated_section(client):
     assert client.get(f"/api/cards/{card['id']}").status_code == 404
 
 
-# --- Sonstiges ---------------------------------------------------------------
+# --- Miscellaneous -----------------------------------------------------------
 
 
 @pytest.mark.parametrize(

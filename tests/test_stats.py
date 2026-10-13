@@ -10,7 +10,7 @@ def get_stats(client, deck_id):
 
 
 def cell(html, attribute, value):
-    """Liest den Inhalt der Tabellenzelle mit dem angegebenen data-Attribut."""
+    """Read the content of the table cell with the given data attribute."""
     match = re.search(rf'<td {attribute}="{value}">(?:<strong>)?(\d+)', html)
     assert match, f"cell {attribute}={value} not found"
     return int(match.group(1))
@@ -73,7 +73,7 @@ def test_stats_of_unknown_deck_return_404(client):
     assert client.get("/api/decks/999/stats").status_code == 404
 
 
-# --- Oberfläche --------------------------------------------------------------
+# --- UI ----------------------------------------------------------------------
 
 
 def test_deck_page_shows_stats(client, deck, add_card):

@@ -1,1 +1,1 @@
-"""Flashcards: Karteikarten-Trainer mit Leitner-System."""
+"""Flashcards: flashcard trainer using the Leitner system."""

@@ -3,7 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
-# Eingaben werden getrimmt; leere Texte sind ungültig.
+# Input is trimmed; empty texts are invalid.
 NonEmptyText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 

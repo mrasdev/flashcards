@@ -91,7 +91,7 @@ def test_review_validation_and_unknown_ids(client, deck, add_card):
     assert client.get("/api/decks/999/due").status_code == 404
 
 
-# --- Oberfläche --------------------------------------------------------------
+# --- UI ----------------------------------------------------------------------
 
 
 def test_deck_page_links_to_study_mode(client, deck):
@@ -205,7 +205,7 @@ def test_repeated_answer_in_same_session_is_ignored(client, deck, add_card, cloc
     first_review = get_card(client, card_id)["last_reviewed_at"]
     clock.tick()
 
-    # Die Karte liegt wieder in Fach 1 und ist fällig; ein zweiter Klick darf sie nicht hochstufen.
+    # The card is back in box 1 and due; a second click must not promote it.
     response = answer(client, card_id, True, started, headers=HTMX)
 
     assert response.status_code == 200
@@ -218,13 +218,13 @@ def test_answer_for_unknown_card_returns_404(client, clock):
     assert answer(client, 999, True, clock.now).status_code == 404
 
 
-# --- Tastatursteuerung -------------------------------------------------------
+# --- Keyboard control --------------------------------------------------------
 
 KEYBOARD_SCRIPT = '<script src="/static/study.js" defer></script>'
 
 
 def tag_with(html, tag, attribute):
-    """Liefert das erste öffnende Tag, das das angegebene Attribut enthält."""
+    """Return the first opening tag that contains the given attribute."""
     for match in re.finditer(rf"<{tag}\b[^>]*>", html):
         if attribute in match.group(0):
             return match.group(0)
@@ -329,7 +329,7 @@ VOID_TAGS = {"br", "hr", "img", "input", "link", "meta"}
 
 
 class KeyButtonFinder(HTMLParser):
-    """Merkt sich zu jedem Button mit data-study-key die Kette seiner Vorfahren."""
+    """Record the chain of ancestors for each button with data-study-key."""
 
     def __init__(self):
         super().__init__()
@@ -356,7 +356,7 @@ def test_key_buttons_are_nested_in_reveal_details_inside_study(client, deck, add
 
     finder.feed(client.get(f"/decks/{deck['id']}/study").text)
 
-    # study.js sucht "#study details[data-study-reveal]" und darin die Buttons.
+    # study.js looks up "#study details[data-study-reveal]" and the buttons inside it.
     assert set(finder.ancestors) == {"k", "n"}
     for ancestors in finder.ancestors.values():
         study = [i for i, (_, attrs) in enumerate(ancestors) if attrs.get("id") == "study"]

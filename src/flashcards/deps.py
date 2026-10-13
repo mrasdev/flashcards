@@ -10,7 +10,7 @@ from flashcards.models import Card, Deck, utc_now
 
 
 def get_today() -> date:
-    # Als Dependency, damit Tests ein festes Datum einsetzen können.
+    # A dependency so tests can inject a fixed date.
     return date.today()
 
 
