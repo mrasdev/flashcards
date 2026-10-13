@@ -1,7 +1,7 @@
 import pytest
 from sqlmodel import Session
 
-from lernkartei.models import Card
+from flashcards.models import Card
 from tests.conftest import TODAY
 
 

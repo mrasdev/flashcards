@@ -3,8 +3,8 @@ import re
 import pytest
 from sqlmodel import select
 
-from lernkartei.csv_import import MAX_UPLOAD_BYTES, decode, import_csv, parse_csv
-from lernkartei.models import Card, Deck
+from flashcards.csv_import import MAX_UPLOAD_BYTES, decode, import_csv, parse_csv
+from flashcards.models import Card, Deck
 from tests.conftest import TODAY
 
 HTMX = {"HX-Request": "true"}

@@ -6,8 +6,8 @@ from fastapi import APIRouter, Form, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from lernkartei import csv_import, services
-from lernkartei.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
+from flashcards import csv_import, services
+from flashcards.deps import CardDep, DeckDep, NowDep, SessionDep, TodayDep
 
 router = APIRouter(default_response_class=HTMLResponse, include_in_schema=False)
 templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")

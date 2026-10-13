@@ -5,8 +5,8 @@ from sqlalchemy import delete, inspect
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
-from lernkartei.db import init_db, make_engine
-from lernkartei.models import Card, Deck
+from flashcards.db import init_db, make_engine
+from flashcards.models import Card, Deck
 
 
 def make_deck(session, name="Spanisch"):
@@ -79,7 +79,7 @@ def test_card_requires_existing_deck(session):
 
 
 def test_init_db_creates_file_with_both_tables(tmp_path):
-    db_file = tmp_path / "lernkartei.db"
+    db_file = tmp_path / "flashcards.db"
     engine = make_engine(f"sqlite:///{db_file.as_posix()}")
 
     init_db(engine)
