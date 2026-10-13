@@ -1,6 +1,6 @@
 # Manual browser tests
 
-Manual test cases not covered by the pytest suite because it only arises in the browser. Go through it by hand after changing the files listed.
+Manual test cases not covered by the pytest suite because they only arise in the browser. 
 
 ## Keyboard control in study mode
 
