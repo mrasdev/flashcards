@@ -14,11 +14,11 @@ templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates"
 
 FormText = Annotated[str, Form()]
 
-ERROR_DECK_NAME_EMPTY = "Bitte einen Namen eingeben."
-ERROR_DECK_NAME_TAKEN = "Ein Deck mit diesem Namen existiert bereits."
-ERROR_CARD_TEXT_EMPTY = "Vorder- und Rückseite dürfen nicht leer sein."
-ERROR_IMPORT_NO_FILE = "Bitte eine CSV-Datei auswählen."
-ERROR_IMPORT_TOO_LARGE = "Die Datei ist größer als 1 MB."
+ERROR_DECK_NAME_EMPTY = "Please enter a name."
+ERROR_DECK_NAME_TAKEN = "A deck with this name already exists."
+ERROR_CARD_TEXT_EMPTY = "Front and back must not be empty."
+ERROR_IMPORT_NO_FILE = "Please choose a CSV file."
+ERROR_IMPORT_TOO_LARGE = "The file is larger than 1 MB."
 
 
 def _is_htmx(request: Request) -> bool:

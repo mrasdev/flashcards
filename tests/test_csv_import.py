@@ -52,12 +52,12 @@ def test_parse_ignores_blank_lines_and_keeps_line_numbers():
 @pytest.mark.parametrize(
     ("line", "fragment"),
     [
-        ("nur eine Spalte", "gefunden: 1"),
-        ("a;b;c", "gefunden: 3"),
-        (";hallo", "Vorder- oder Rückseite ist leer"),
-        ("hola;", "Vorder- oder Rückseite ist leer"),
-        ("hola;   ", "Vorder- oder Rückseite ist leer"),
-        (";", "Vorder- und Rückseite sind leer"),
+        ("nur eine Spalte", "found: 1"),
+        ("a;b;c", "found: 3"),
+        (";hallo", "Front or back is empty"),
+        ("hola;", "Front or back is empty"),
+        ("hola;   ", "Front or back is empty"),
+        (";", "Front and back are empty"),
     ],
 )
 def test_parse_reports_invalid_rows(line, fragment):
@@ -195,11 +195,11 @@ def test_api_import_errors(client, deck):
 def test_deck_page_contains_import_form(client, deck):
     html = client.get(f"/decks/{deck['id']}").text
 
-    assert "CSV-Import" in html
+    assert "CSV import" in html
     assert f'hx-post="/decks/{deck["id"]}/import"' in html
     assert 'hx-encoding="multipart/form-data"' in html
     assert 'type="file"' in html
-    assert "Import abgeschlossen" not in html
+    assert "Import finished" not in html
 
 
 def test_page_import_with_htmx_shows_result_cards_and_stats(client, deck):
@@ -211,10 +211,10 @@ def test_page_import_with_htmx_shows_result_cards_and_stats(client, deck):
     html = response.text
     assert "<html" not in html
     assert 'id="cards"' in html
-    assert "Import abgeschlossen" in html
+    assert "Import finished" in html
     counts = dict(re.findall(r'data-import="(\w+)">(\d+)<', html))
     assert counts == {"imported": "2", "skipped": "1", "errors": "1"}
-    assert "Zeile 3:" in html
+    assert "Line 3:" in html
     assert "adiós" in html
     assert re.search(r'data-stat="total">2<', html)
 
@@ -224,14 +224,14 @@ def test_page_import_without_htmx_renders_full_page(client, deck):
 
     assert response.status_code == 200
     assert "<html" in response.text
-    assert "Import abgeschlossen" in response.text
+    assert "Import finished" in response.text
 
 
 def test_page_import_without_file_shows_error(client, deck):
     response = client.post(f"/decks/{deck['id']}/import", headers=HTMX)
 
     assert response.status_code == 200
-    assert "Bitte eine CSV-Datei auswählen." in response.text
+    assert "Please choose a CSV file." in response.text
 
 
 def test_page_import_of_too_large_file_shows_error(client, deck):
@@ -239,7 +239,7 @@ def test_page_import_of_too_large_file_shows_error(client, deck):
 
     response = upload(client, f"/decks/{deck['id']}/import", content, headers=HTMX)
 
-    assert "Die Datei ist größer als 1 MB." in response.text
+    assert "The file is larger than 1 MB." in response.text
     assert client.get(f"/api/decks/{deck['id']}/cards").json() == []
 
 

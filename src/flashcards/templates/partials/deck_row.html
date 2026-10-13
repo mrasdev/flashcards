@@ -4,12 +4,12 @@
   <td class="actions">
     <button type="button" class="secondary outline"
             hx-get="/decks/{{ deck.id }}/edit" hx-target="closest tr" hx-swap="outerHTML">
-      Umbenennen
+      Rename
     </button>
     <button type="button" class="contrast outline"
             hx-delete="/decks/{{ deck.id }}" hx-target="#decks" hx-swap="outerHTML"
-            hx-confirm="Deck „{{ deck.name }}“ mit allen Karten löschen?">
-      Löschen
+            hx-confirm="Delete deck “{{ deck.name }}” and all its cards?">
+      Delete
     </button>
   </td>
 </tr>

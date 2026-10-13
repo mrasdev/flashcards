@@ -51,7 +51,7 @@ def parse_csv(text: str) -> ParsedCsv:
         except StopIteration:
             break
         except csv.Error:
-            parsed.errors.append(RowError(line, "Zeile ist kein gültiges CSV."))
+            parsed.errors.append(RowError(line, "Line is not valid CSV."))
             line = reader.line_num + 1
             continue
         start_line, line = line, reader.line_num + 1
@@ -59,20 +59,20 @@ def parse_csv(text: str) -> ParsedCsv:
         fields = [value.strip() for value in fields]
         if not any(fields):
             if len(fields) > 1:
-                parsed.errors.append(RowError(start_line, "Vorder- und Rückseite sind leer."))
+                parsed.errors.append(RowError(start_line, "Front and back are empty."))
             # Leerzeilen werden stillschweigend übergangen.
             continue
         if len(fields) != 2:
             parsed.errors.append(
                 RowError(
                     start_line,
-                    f"Erwartet 2 Spalten (vorne;hinten), gefunden: {len(fields)}.",
+                    f"Expected 2 columns (front;back), found: {len(fields)}.",
                 )
             )
             continue
         front, back = fields
         if not front or not back:
-            parsed.errors.append(RowError(start_line, "Vorder- oder Rückseite ist leer."))
+            parsed.errors.append(RowError(start_line, "Front or back is empty."))
             continue
         parsed.rows.append((front, back))
     return parsed

@@ -26,14 +26,14 @@ NowDep = Annotated[datetime, Depends(get_now)]
 def deck_or_404(deck_id: int, session: SessionDep) -> Deck:
     deck = services.get_deck(session, deck_id)
     if deck is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Deck nicht gefunden")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Deck not found")
     return deck
 
 
 def card_or_404(card_id: int, session: SessionDep) -> Card:
     card = services.get_card(session, card_id)
     if card is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Karte nicht gefunden")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Card not found")
     return card
 
 

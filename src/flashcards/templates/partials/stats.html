@@ -1,14 +1,14 @@
 <article id="stats">
-  <header><strong>Statistik</strong></header>
+  <header><strong>Statistics</strong></header>
   <div class="overflow-auto">
     <table>
       <thead>
         <tr>
           {% for box in stats.boxes %}
-          <th scope="col">Fach {{ box }}</th>
+          <th scope="col">Box {{ box }}</th>
           {% endfor %}
-          <th scope="col">Gesamt</th>
-          <th scope="col">Heute fällig</th>
+          <th scope="col">Total</th>
+          <th scope="col">Due today</th>
         </tr>
       </thead>
       <tbody>
@@ -23,6 +23,6 @@
     </table>
   </div>
   <a href="/decks/{{ deck.id }}/study" role="button">
-    {% if stats.due_today %}Lernen ({{ stats.due_today }} fällig){% else %}Lernen{% endif %}
+    {% if stats.due_today %}Study ({{ stats.due_today }} due){% else %}Study{% endif %}
   </a>
 </article>

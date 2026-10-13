@@ -83,11 +83,11 @@ def test_deck_page_shows_stats(client, deck, add_card):
 
     html = client.get(f"/decks/{deck['id']}").text
 
-    assert "Statistik" in html
+    assert "Statistics" in html
     assert [cell(html, "data-box", box) for box in range(1, 6)] == [1, 2, 0, 0, 0]
     assert cell(html, "data-stat", "total") == 3
     assert cell(html, "data-stat", "due-today") == 2
-    assert "Lernen (2 fällig)" in html
+    assert "Study (2 due)" in html
 
 
 def test_deck_page_of_empty_deck_shows_zero_stats(client, deck):
@@ -95,7 +95,7 @@ def test_deck_page_of_empty_deck_shows_zero_stats(client, deck):
 
     assert cell(html, "data-stat", "total") == 0
     assert cell(html, "data-stat", "due-today") == 0
-    assert "fällig)" not in html
+    assert "due)" not in html
 
 
 def test_stats_are_refreshed_when_card_is_added(client, deck):
@@ -123,7 +123,7 @@ def test_deck_list_shows_due_count_per_deck(client, deck, add_card):
 
     html = client.get("/").text
 
-    assert "Heute fällig" in html
+    assert "Due today" in html
     rows = {
         int(deck_id): int(count)
         for deck_id, count in re.findall(

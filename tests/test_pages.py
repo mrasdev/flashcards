@@ -25,7 +25,7 @@ def test_deck_list_shows_hint_when_empty(client):
 
     assert response.status_code == 200
     assert is_full_page(response)
-    assert "Noch keine Decks vorhanden" in response.text
+    assert "No decks yet" in response.text
 
 
 def test_deck_list_shows_decks(client):
@@ -66,11 +66,11 @@ def test_create_deck_with_htmx_returns_only_partial(client):
 @pytest.mark.parametrize(
     ("name", "message"),
     [
-        ("   ", "Bitte einen Namen eingeben."),
-        ("Spanisch", "Ein Deck mit diesem Namen existiert bereits."),
+        ("   ", "Please enter a name."),
+        ("Spanisch", "A deck with this name already exists."),
     ],
 )
-def test_create_deck_shows_german_error(client, name, message):
+def test_create_deck_shows_error(client, name, message):
     create_deck(client)
 
     response = client.post("/decks", data={"name": name}, headers=HTMX)
@@ -85,7 +85,7 @@ def test_create_deck_error_without_htmx_renders_full_page(client):
 
     assert response.status_code == 422
     assert is_full_page(response)
-    assert "Bitte einen Namen eingeben." in response.text
+    assert "Please enter a name." in response.text
 
 
 def test_deck_edit_form_is_prefilled(client):
@@ -106,7 +106,7 @@ def test_deck_row_partial_for_cancel(client):
 
     assert response.status_code == 200
     assert response.text.lstrip().startswith("<tr")
-    assert "Umbenennen" in response.text
+    assert "Rename" in response.text
 
 
 def test_rename_deck_returns_row(client):
@@ -127,7 +127,7 @@ def test_rename_deck_to_existing_name_shows_error_and_keeps_input(client):
     response = client.put(f"/decks/{deck['id']}", data={"name": "Englisch"}, headers=HTMX)
 
     assert response.status_code == 200
-    assert "Ein Deck mit diesem Namen existiert bereits." in response.text
+    assert "A deck with this name already exists." in response.text
     assert 'value="Englisch"' in response.text
     assert client.get(f"/api/decks/{deck['id']}").json()["name"] == "Spanisch"
 
@@ -140,7 +140,7 @@ def test_delete_deck_returns_updated_section(client):
 
     assert response.status_code == 200
     assert not is_full_page(response)
-    assert "Noch keine Decks vorhanden" in response.text
+    assert "No decks yet" in response.text
     assert client.get(f"/api/cards/{card['id']}").status_code == 404
 
 
@@ -169,7 +169,7 @@ def test_deck_detail_shows_cards(client):
 def test_deck_detail_shows_hint_when_empty(client):
     deck = create_deck(client)
 
-    assert "Dieses Deck enthält noch keine Karten." in client.get(f"/decks/{deck['id']}").text
+    assert "This deck has no cards yet." in client.get(f"/decks/{deck['id']}").text
 
 
 def test_create_card_with_htmx_returns_only_partial(client):
@@ -207,7 +207,7 @@ def test_create_card_with_empty_side_shows_error_and_keeps_input(client):
     )
 
     assert response.status_code == 200
-    assert "Vorder- und Rückseite dürfen nicht leer sein." in response.text
+    assert "Front and back must not be empty." in response.text
     assert 'value="hola"' in response.text
     assert client.get(f"/api/decks/{deck['id']}/cards").json() == []
 
@@ -230,7 +230,7 @@ def test_card_row_partial_for_cancel(client):
     response = client.get(f"/cards/{card['id']}/row", headers=HTMX)
 
     assert response.text.lstrip().startswith("<tr")
-    assert "Bearbeiten" in response.text
+    assert "Edit" in response.text
 
 
 def test_update_card_returns_row(client):
@@ -256,7 +256,7 @@ def test_update_card_with_empty_side_changes_nothing(client):
         f"/cards/{card['id']}", data={"front": "adiós", "back": ""}, headers=HTMX
     )
 
-    assert "Vorder- und Rückseite dürfen nicht leer sein." in response.text
+    assert "Front and back must not be empty." in response.text
     stored = client.get(f"/api/cards/{card['id']}").json()
     assert (stored["front"], stored["back"]) == ("hola", "hallo")
 
@@ -268,7 +268,7 @@ def test_delete_card_returns_updated_section(client):
     response = client.delete(f"/cards/{card['id']}", headers=HTMX)
 
     assert response.status_code == 200
-    assert "Dieses Deck enthält noch keine Karten." in response.text
+    assert "This deck has no cards yet." in response.text
     assert client.get(f"/api/cards/{card['id']}").status_code == 404
 
 

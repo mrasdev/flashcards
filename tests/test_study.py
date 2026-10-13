@@ -109,8 +109,8 @@ def test_study_page_shows_first_due_card(client, deck, add_card, clock):
     assert "<html" in response.text
     assert "hola" in response.text
     assert "hallo" in response.text
-    assert "Aufdecken" in response.text
-    assert "Noch 2 Karten in dieser Sitzung" in response.text
+    assert "Reveal" in response.text
+    assert "2 cards left in this session" in response.text
     assert f'action="/cards/{first}/answer"' in response.text
     assert f'value="{clock.now.isoformat()}"' in response.text
     assert "morgen" not in response.text
@@ -122,7 +122,7 @@ def test_study_page_for_deck_without_due_cards(client, deck, add_card):
     response = client.get(f"/decks/{deck['id']}/study")
 
     assert response.status_code == 200
-    assert "Fertig für heute!" in response.text
+    assert "Done for today!" in response.text
     assert "morgen" not in response.text
 
 
@@ -138,7 +138,7 @@ def test_known_answer_updates_card_and_shows_next(client, deck, add_card, clock)
     assert "<html" not in response.text
     assert 'id="study"' in response.text
     assert "adiós" in response.text
-    assert "Noch 1 Karte in dieser Sitzung" in response.text
+    assert "1 card left in this session" in response.text
     stored = get_card(client, first)
     assert stored["box"] == 2
     assert stored["due_date"] == (TODAY + timedelta(days=1)).isoformat()
@@ -165,7 +165,7 @@ def test_session_ends_when_all_cards_known(client, deck, add_card, clock):
         clock.tick()
         response = answer(client, card_id, True, started, headers=HTMX)
 
-    assert "Fertig für heute!" in response.text
+    assert "Done for today!" in response.text
     assert client.get(f"/api/decks/{deck['id']}/due").json() == []
 
 
@@ -176,8 +176,8 @@ def test_unknown_card_is_not_repeated_in_same_session(client, deck, add_card, cl
 
     response = answer(client, card_id, False, started, headers=HTMX)
 
-    assert "Sitzung beendet." in response.text
-    assert "1 nicht gewusste Karte kommt" in response.text
+    assert "Session finished." in response.text
+    assert "1 card you did not know comes" in response.text
     assert "hola" not in response.text
     stored = get_card(client, card_id)
     assert stored["box"] == 1
@@ -272,7 +272,7 @@ def test_study_page_shows_key_hint(client, deck, add_card):
     html = client.get(f"/decks/{deck['id']}/study").text
 
     assert has_key_hint(html)
-    assert "<kbd>Leertaste</kbd>" in html
+    assert "<kbd>Space</kbd>" in html
     assert "<kbd>J</kbd>" in html
     assert "<kbd>N</kbd>" in html
 
@@ -296,7 +296,7 @@ def test_key_hint_is_hidden_when_session_is_over(client, deck, add_card, clock):
 
     postponed = answer(client, card_id, False, started, headers=HTMX)
 
-    assert "Sitzung beendet." in postponed.text
+    assert "Session finished." in postponed.text
     assert not has_key_hint(postponed.text)
 
     clock.tick()
@@ -304,14 +304,14 @@ def test_key_hint_is_hidden_when_session_is_over(client, deck, add_card, clock):
     clock.tick()
     done = answer(client, card_id, True, started, headers=HTMX)
 
-    assert "Fertig für heute!" in done.text
+    assert "Done for today!" in done.text
     assert not has_key_hint(done.text)
 
 
 def test_study_page_without_due_cards_has_no_key_hint(client, deck):
     html = client.get(f"/decks/{deck['id']}/study").text
 
-    assert "Fertig für heute!" in html
+    assert "Done for today!" in html
     assert not has_key_hint(html)
 
 
