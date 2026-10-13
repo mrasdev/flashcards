@@ -12,7 +12,7 @@
       <form class="answer-form" method="post" action="/cards/{{ card.id }}/answer"
             hx-post="/cards/{{ card.id }}/answer" hx-target="#study" hx-swap="outerHTML">
         <input type="hidden" name="started" value="{{ started.isoformat() }}">
-        <button type="submit" name="known" value="true" data-study-key="j">Known</button>
+        <button type="submit" name="known" value="true" data-study-key="k">Known</button>
         <button type="submit" name="known" value="false" class="contrast" data-study-key="n">
           Not known
         </button>
@@ -20,7 +20,7 @@
     </details>
   </article>
   <p class="key-hint"><small>
-    Keys: <kbd>Space</kbd> reveal · <kbd>J</kbd> known · <kbd>N</kbd> not known
+    Keys: <kbd>Space</kbd> reveal · <kbd>K</kbd> known · <kbd>N</kbd> not known
   </small></p>
   {% elif postponed %}
   <article>

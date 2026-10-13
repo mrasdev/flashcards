@@ -273,7 +273,7 @@ def test_study_page_shows_key_hint(client, deck, add_card):
 
     assert has_key_hint(html)
     assert "<kbd>Space</kbd>" in html
-    assert "<kbd>J</kbd>" in html
+    assert "<kbd>K</kbd>" in html
     assert "<kbd>N</kbd>" in html
 
 
@@ -321,7 +321,7 @@ def test_study_card_has_keyboard_hooks(client, deck, add_card):
     html = client.get(f"/decks/{deck['id']}/study").text
 
     assert tag_with(html, "details", "data-study-reveal")
-    assert 'data-study-key="j"' in tag_with(html, "button", 'value="true"')
+    assert 'data-study-key="k"' in tag_with(html, "button", 'value="true"')
     assert 'data-study-key="n"' in tag_with(html, "button", 'value="false"')
 
 
@@ -357,7 +357,7 @@ def test_key_buttons_are_nested_in_reveal_details_inside_study(client, deck, add
     finder.feed(client.get(f"/decks/{deck['id']}/study").text)
 
     # study.js sucht "#study details[data-study-reveal]" und darin die Buttons.
-    assert set(finder.ancestors) == {"j", "n"}
+    assert set(finder.ancestors) == {"k", "n"}
     for ancestors in finder.ancestors.values():
         study = [i for i, (_, attrs) in enumerate(ancestors) if attrs.get("id") == "study"]
         reveal = [
