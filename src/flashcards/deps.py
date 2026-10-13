@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from sqlmodel import Session
 
-from lernkartei import services
-from lernkartei.db import get_session
-from lernkartei.models import Card, Deck, utc_now
+from flashcards import services
+from flashcards.db import get_session
+from flashcards.models import Card, Deck, utc_now
 
 
 def get_today() -> date:

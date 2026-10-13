@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "lernkartei",
+      "name": "flashcards",
       "runtimeExecutable": ".venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "uvicorn", "lernkartei.main:app", "--reload", "--port", "8000"],
+      "runtimeArgs": ["-m", "uvicorn", "flashcards.main:app", "--reload", "--port", "8000"],
       "port": 8000
     }
   ]

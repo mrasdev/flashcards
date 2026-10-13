@@ -4,8 +4,8 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from lernkartei.db import init_db
-from lernkartei.routers import api, pages
+from flashcards.db import init_db
+from flashcards.routers import api, pages
 
 
 @asynccontextmanager
@@ -14,7 +14,7 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Lernkartei", lifespan=lifespan)
+app = FastAPI(title="Flashcards", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 app.include_router(api.router)
 app.include_router(pages.router)

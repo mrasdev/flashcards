@@ -1,4 +1,4 @@
-# Umsetzungsplan Lernkartei
+# Umsetzungsplan Flashcards
 
 Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, HTMX, Pico.css) mit Decks, Karten, Lernmodus, Statistik und CSV-Import. Jede Phase endet mit `ruff check . && pytest` und einem Commit.
 
@@ -26,13 +26,13 @@ Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, 
 ## Annahmen
 
 - Einzelnutzer, keine Anmeldung.
-- Kein Migrationswerkzeug: Tabellen per `SQLModel.metadata.create_all` beim Start. DB-Pfad über Umgebungsvariable `LERNKARTEI_DB`, Standard `lernkartei.db` (in `.gitignore`).
+- Kein Migrationswerkzeug: Tabellen per `SQLModel.metadata.create_all` beim Start. DB-Pfad über Umgebungsvariable `FLASHCARDS_DB`, Standard `flashcards.db` (in `.gitignore`).
 - Decknamen sind eindeutig; doppelter Name ergibt 409 bzw. Formularfehler.
 - Deck löschen löscht dessen Karten mit (Rückfrage per `hx-confirm`).
 - Karte bearbeiten ändert Fach und Fälligkeit nicht.
 - Karte in Fach 5 gewusst: bleibt in Fach 5, wieder fällig in 14 Tagen.
 - Reihenfolge im Lernmodus: niedrigstes Fach zuerst, dann ältestes Fälligkeitsdatum, dann ID.
-- HTMX und Pico.css liegen als Dateien in `src/lernkartei/static/` (kein CDN, läuft offline).
+- HTMX und Pico.css liegen als Dateien in `src/flashcards/static/` (kein CDN, läuft offline).
 - "Heute" kommt aus einer FastAPI-Dependency `get_today()`, die Tests überschreiben – keine Zeit-Mocking-Bibliothek nötig.
 
 ## Zielstruktur
@@ -40,7 +40,7 @@ Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, 
 ```
 pyproject.toml
 .gitignore
-src/lernkartei/
+src/flashcards/
   __init__.py
   main.py            # App, Router, Static, Lifespan (init_db)
   db.py              # Engine, get_session, init_db
@@ -62,9 +62,9 @@ tests/
 
 ## Phase 0 – Projektgerüst
 
-- **Dateien:** `pyproject.toml` (setuptools, src-Layout, Abhängigkeiten, `[dev]`-Extra, ruff- und pytest-Konfiguration), `.gitignore`, `src/lernkartei/__init__.py`, `main.py` mit `GET /health`, `tests/test_health.py`.
+- **Dateien:** `pyproject.toml` (setuptools, src-Layout, Abhängigkeiten, `[dev]`-Extra, ruff- und pytest-Konfiguration), `.gitignore`, `src/flashcards/__init__.py`, `main.py` mit `GET /health`, `tests/test_health.py`.
 - **Tests:** `/health` liefert 200.
-- **Abnahme:** `pip install -e ".[dev]"` läuft durch, `ruff check . && pytest` grün, `uvicorn lernkartei.main:app` startet.
+- **Abnahme:** `pip install -e ".[dev]"` läuft durch, `ruff check . && pytest` grün, `uvicorn flashcards.main:app` startet.
 
 ## Phase 1 – Datenmodell
 
@@ -133,5 +133,5 @@ tests/
 ## Verifikation am Ende
 
 1. `pip install -e ".[dev]"`, dann `ruff check . && pytest` – alles grün.
-2. `uvicorn lernkartei.main:app --reload`, im Browser: Deck anlegen und umbenennen, Karten anlegen/bearbeiten/löschen, CSV importieren, Lernsitzung durchspielen (gewusst und nicht gewusst), Statistik prüfen, Deck löschen.
+2. `uvicorn flashcards.main:app --reload`, im Browser: Deck anlegen und umbenennen, Karten anlegen/bearbeiten/löschen, CSV importieren, Lernsitzung durchspielen (gewusst und nicht gewusst), Statistik prüfen, Deck löschen.
 3. `/docs` gegenprüfen: alle API-Endpunkte vorhanden und bedienbar.

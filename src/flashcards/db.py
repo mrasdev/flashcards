@@ -5,9 +5,9 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
-from lernkartei import models  # noqa: F401 - registriert die Tabellen in den Metadaten
+from flashcards import models  # noqa: F401 - registriert die Tabellen in den Metadaten
 
-DATABASE_URL = f"sqlite:///{os.environ.get('LERNKARTEI_DB', 'lernkartei.db')}"
+DATABASE_URL = f"sqlite:///{os.environ.get('FLASHCARDS_DB', 'flashcards.db')}"
 
 
 def make_engine(url: str = DATABASE_URL, **kwargs) -> Engine:

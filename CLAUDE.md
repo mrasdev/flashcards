@@ -1,4 +1,4 @@
-# Lernkartei
+# Flashcards
 
 Karteikarten-Trainer mit Leitner-System als Webapp.
 
@@ -7,11 +7,11 @@ Karteikarten-Trainer mit Leitner-System als Webapp.
 - Python 3.12+ (Code bleibt 3.12-kompatibel, lokal läuft 3.14)
 - FastAPI
 - SQLModel mit SQLite
-- Jinja2-Templates, HTMX, Pico.css (als Dateien in `src/lernkartei/static/`, kein CDN)
+- Jinja2-Templates, HTMX, Pico.css (als Dateien in `src/flashcards/static/`, kein CDN)
 
 ## Projektstruktur
 
-- src-Layout: Anwendungscode in `src/lernkartei/`
+- src-Layout: Anwendungscode in `src/flashcards/`
 - Tests in `tests/`
 - Abhängigkeiten in `pyproject.toml`
 - Planung und Fortschritt: `docs/PLAN.md`
@@ -28,7 +28,7 @@ Karteikarten-Trainer mit Leitner-System als Webapp.
 - Installation: `pip install -e ".[dev]"`
 - Linting: `ruff check .`
 - Tests: `pytest`
-- App starten: `uvicorn lernkartei.main:app --reload`
+- App starten: `uvicorn flashcards.main:app --reload`
 - Vor jedem Commit: `ruff check . && pytest`
 
 ## Konventionen

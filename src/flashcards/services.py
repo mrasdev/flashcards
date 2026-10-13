@@ -6,8 +6,8 @@ from datetime import UTC, date, datetime
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, func, or_, select
 
-from lernkartei import leitner
-from lernkartei.models import Card, Deck
+from flashcards import leitner
+from flashcards.models import Card, Deck
 
 
 class EmptyTextError(ValueError):
