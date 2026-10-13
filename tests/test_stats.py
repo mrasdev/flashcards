@@ -10,7 +10,7 @@ def get_stats(client, deck_id):
 
 
 def cell(html, attribute, value):
-    """Liest den Inhalt der Tabellenzelle mit dem angegebenen data-Attribut."""
+    """Read the content of the table cell with the given data attribute."""
     match = re.search(rf'<td {attribute}="{value}">(?:<strong>)?(\d+)', html)
     assert match, f"cell {attribute}={value} not found"
     return int(match.group(1))
@@ -40,18 +40,18 @@ def test_stats_count_cards_per_box(client, deck, add_card):
 
 
 def test_due_today_includes_today_and_overdue_but_not_tomorrow(client, deck, add_card):
-    add_card("heute")
-    add_card("überfällig", box=4, due_in_days=-5)
-    add_card("morgen", box=2, due_in_days=1)
+    add_card("today")
+    add_card("overdue", box=4, due_in_days=-5)
+    add_card("tomorrow", box=2, due_in_days=1)
 
     assert get_stats(client, deck["id"])["due_today"] == 2
 
 
 def test_stats_ignore_cards_of_other_decks(client, deck, add_card):
-    other = client.post("/api/decks", json={"name": "Englisch"}).json()
-    add_card("eigen")
-    add_card("fremd", deck_id=other["id"])
-    add_card("fremd2", deck_id=other["id"])
+    other = client.post("/api/decks", json={"name": "French"}).json()
+    add_card("own")
+    add_card("foreign", deck_id=other["id"])
+    add_card("foreign2", deck_id=other["id"])
 
     assert get_stats(client, deck["id"])["total"] == 1
     assert get_stats(client, other["id"])["total"] == 2
@@ -73,7 +73,7 @@ def test_stats_of_unknown_deck_return_404(client):
     assert client.get("/api/decks/999/stats").status_code == 404
 
 
-# --- Oberfläche --------------------------------------------------------------
+# --- UI ----------------------------------------------------------------------
 
 
 def test_deck_page_shows_stats(client, deck, add_card):
@@ -83,11 +83,11 @@ def test_deck_page_shows_stats(client, deck, add_card):
 
     html = client.get(f"/decks/{deck['id']}").text
 
-    assert "Statistik" in html
+    assert "Statistics" in html
     assert [cell(html, "data-box", box) for box in range(1, 6)] == [1, 2, 0, 0, 0]
     assert cell(html, "data-stat", "total") == 3
     assert cell(html, "data-stat", "due-today") == 2
-    assert "Lernen (2 fällig)" in html
+    assert "Study (2 due)" in html
 
 
 def test_deck_page_of_empty_deck_shows_zero_stats(client, deck):
@@ -95,12 +95,12 @@ def test_deck_page_of_empty_deck_shows_zero_stats(client, deck):
 
     assert cell(html, "data-stat", "total") == 0
     assert cell(html, "data-stat", "due-today") == 0
-    assert "fällig)" not in html
+    assert "due)" not in html
 
 
 def test_stats_are_refreshed_when_card_is_added(client, deck):
     response = client.post(
-        f"/decks/{deck['id']}/cards", data={"front": "hola", "back": "hallo"}, headers=HTMX
+        f"/decks/{deck['id']}/cards", data={"front": "hola", "back": "hello"}, headers=HTMX
     )
 
     assert cell(response.text, "data-box", 1) == 1
@@ -116,14 +116,14 @@ def test_stats_are_refreshed_when_card_is_deleted(client, deck, add_card):
 
 
 def test_deck_list_shows_due_count_per_deck(client, deck, add_card):
-    other = client.post("/api/decks", json={"name": "Englisch"}).json()
-    add_card("heute")
-    add_card("überfällig", due_in_days=-1)
-    add_card("morgen", due_in_days=1)
+    other = client.post("/api/decks", json={"name": "French"}).json()
+    add_card("today")
+    add_card("overdue", due_in_days=-1)
+    add_card("tomorrow", due_in_days=1)
 
     html = client.get("/").text
 
-    assert "Heute fällig" in html
+    assert "Due today" in html
     rows = {
         int(deck_id): int(count)
         for deck_id, count in re.findall(
@@ -134,7 +134,7 @@ def test_deck_list_shows_due_count_per_deck(client, deck, add_card):
 
 
 def test_deck_row_partial_contains_due_count(client, deck, add_card):
-    add_card("heute")
+    add_card("today")
 
     response = client.get(f"/decks/{deck['id']}/row", headers=HTMX)
 

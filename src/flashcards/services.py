@@ -1,4 +1,4 @@
-"""Datenbankoperationen, die JSON-API und HTML-Oberfläche gemeinsam nutzen."""
+"""Database operations shared by the JSON API and the HTML interface."""
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -11,15 +11,15 @@ from flashcards.models import Card, Deck
 
 
 class EmptyTextError(ValueError):
-    """Ein Pflichttext ist leer oder besteht nur aus Leerzeichen."""
+    """A required text is empty or consists only of whitespace."""
 
 
 class DuplicateDeckNameError(ValueError):
-    """Es gibt bereits ein Deck mit diesem Namen."""
+    """A deck with this name already exists."""
 
 
 class CardNotDueError(ValueError):
-    """Die Karte ist heute nicht fällig."""
+    """The card is not due today."""
 
 
 def _clean(text: str) -> str:
@@ -81,8 +81,8 @@ def create_card(session: Session, deck: Deck, front: str, back: str, today: date
 def update_card(
     session: Session, card: Card, front: str | None = None, back: str | None = None
 ) -> Card:
-    # Fach und Fälligkeit bleiben beim Bearbeiten unverändert.
-    # Erst beide Texte prüfen, damit bei einem Fehler nichts halb geändert ist.
+    # Box and due date stay unchanged when editing.
+    # Check both texts first so an error leaves nothing half changed.
     new_front = card.front if front is None else _clean(front)
     new_back = card.back if back is None else _clean(back)
     card.front, card.back = new_front, new_back
@@ -98,16 +98,16 @@ def delete_card(session: Session, card: Card) -> None:
 
 
 def _as_utc(moment: datetime) -> datetime:
-    # Zeitstempel ohne Zeitzone (z. B. aus einem Formular) gelten als UTC.
+    # Timestamps without a time zone (e.g. from a form) are treated as UTC.
     return moment.replace(tzinfo=UTC) if moment.tzinfo is None else moment
 
 
 def due_cards(
     session: Session, deck: Deck, today: date, started: datetime | None = None
 ) -> list[Card]:
-    """Fällige Karten eines Decks, niedrigstes Fach zuerst.
+    """Due cards of a deck, lowest box first.
 
-    Mit ``started`` fallen Karten weg, die in dieser Lernsitzung schon dran waren.
+    With ``started``, cards already seen in this study session are left out.
     """
     statement = select(Card).where(Card.deck_id == deck.id, Card.due_date <= today)
     if started is not None:
@@ -118,7 +118,7 @@ def due_cards(
 
 
 def is_pending(card: Card, today: date, started: datetime) -> bool:
-    """Ob die Karte in der Sitzung mit Beginn ``started`` noch beantwortet werden darf."""
+    """Whether the card may still be answered in the session that began at ``started``."""
     if not leitner.is_due(card.due_date, today):
         return False
     return card.last_reviewed_at is None or card.last_reviewed_at < _as_utc(started)
@@ -143,7 +143,7 @@ class DeckStats:
 
 
 def deck_stats(session: Session, deck: Deck, today: date) -> DeckStats:
-    # Alle Fächer vorbelegen, damit auch leere Fächer mit 0 erscheinen.
+    # Prefill all boxes so empty boxes show up as 0.
     boxes = dict.fromkeys(leitner.BOX_INTERVALS, 0)
     rows = session.exec(
         select(Card.box, func.count()).where(Card.deck_id == deck.id).group_by(Card.box)
@@ -156,7 +156,7 @@ def deck_stats(session: Session, deck: Deck, today: date) -> DeckStats:
 
 
 def due_counts(session: Session, today: date) -> dict[int, int]:
-    """Anzahl heute fälliger Karten je Deck-ID; Decks ohne fällige Karten fehlen."""
+    """Number of cards due today per deck ID; decks without due cards are missing."""
     rows = session.exec(
         select(Card.deck_id, func.count()).where(Card.due_date <= today).group_by(Card.deck_id)
     ).all()

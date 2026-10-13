@@ -7,10 +7,10 @@ from tests.conftest import TODAY
 
 @pytest.fixture
 def deck(client):
-    return client.post("/api/decks", json={"name": "Spanisch"}).json()
+    return client.post("/api/decks", json={"name": "Spanish"}).json()
 
 
-def create_card(client, deck, front="hola", back="hallo"):
+def create_card(client, deck, front="hola", back="hello"):
     response = client.post(f"/api/decks/{deck['id']}/cards", json={"front": front, "back": back})
     assert response.status_code == 201
     return response.json()
@@ -18,13 +18,13 @@ def create_card(client, deck, front="hola", back="hallo"):
 
 def test_create_card_starts_in_box_one_due_today(client, deck):
     response = client.post(
-        f"/api/decks/{deck['id']}/cards", json={"front": "  hola ", "back": " hallo  "}
+        f"/api/decks/{deck['id']}/cards", json={"front": "  hola ", "back": " hello  "}
     )
 
     assert response.status_code == 201
     body = response.json()
     assert body["front"] == "hola"
-    assert body["back"] == "hallo"
+    assert body["back"] == "hello"
     assert body["deck_id"] == deck["id"]
     assert body["box"] == 1
     assert body["due_date"] == TODAY.isoformat()
@@ -32,10 +32,10 @@ def test_create_card_starts_in_box_one_due_today(client, deck):
 
 
 def test_list_cards_only_returns_cards_of_deck(client, deck):
-    other = client.post("/api/decks", json={"name": "Englisch"}).json()
-    create_card(client, deck, "hola", "hallo")
-    create_card(client, deck, "adiós", "tschüss")
-    create_card(client, other, "dog", "Hund")
+    other = client.post("/api/decks", json={"name": "French"}).json()
+    create_card(client, deck, "hola", "hello")
+    create_card(client, deck, "adiós", "goodbye")
+    create_card(client, other, "chien", "dog")
 
     response = client.get(f"/api/decks/{deck['id']}/cards")
 
@@ -55,11 +55,11 @@ def test_read_card(client, deck):
 def test_update_card_changes_only_given_fields(client, deck):
     card = create_card(client, deck)
 
-    response = client.patch(f"/api/cards/{card['id']}", json={"back": "hallo!"})
+    response = client.patch(f"/api/cards/{card['id']}", json={"back": "hello!"})
 
     assert response.status_code == 200
     assert response.json()["front"] == "hola"
-    assert response.json()["back"] == "hallo!"
+    assert response.json()["back"] == "hello!"
 
 
 def test_update_card_keeps_box_and_due_date(client, deck, engine):
@@ -91,7 +91,7 @@ def test_delete_card(client, deck):
 @pytest.mark.parametrize(
     "payload",
     [
-        {"front": "", "back": "hallo"},
+        {"front": "", "back": "hello"},
         {"front": "hola", "back": "   "},
         {"front": "hola"},
         {},

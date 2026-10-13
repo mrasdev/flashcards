@@ -14,11 +14,11 @@ templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates"
 
 FormText = Annotated[str, Form()]
 
-ERROR_DECK_NAME_EMPTY = "Bitte einen Namen eingeben."
-ERROR_DECK_NAME_TAKEN = "Ein Deck mit diesem Namen existiert bereits."
-ERROR_CARD_TEXT_EMPTY = "Vorder- und Rückseite dürfen nicht leer sein."
-ERROR_IMPORT_NO_FILE = "Bitte eine CSV-Datei auswählen."
-ERROR_IMPORT_TOO_LARGE = "Die Datei ist größer als 1 MB."
+ERROR_DECK_NAME_EMPTY = "Please enter a name."
+ERROR_DECK_NAME_TAKEN = "A deck with this name already exists."
+ERROR_CARD_TEXT_EMPTY = "Front and back must not be empty."
+ERROR_IMPORT_NO_FILE = "Please choose a CSV file."
+ERROR_IMPORT_TOO_LARGE = "The file is larger than 1 MB."
 
 
 def _is_htmx(request: Request) -> bool:
@@ -26,8 +26,8 @@ def _is_htmx(request: Request) -> bool:
 
 
 def _render(request: Request, page: str, partial: str, context: dict, failed: bool = False):
-    # HTMX bekommt nur das Partial (immer 200, sonst tauscht es nichts aus),
-    # ein normaler Seitenaufruf die ganze Seite.
+    # HTMX only gets the partial (always 200, otherwise it swaps nothing),
+    # a regular page request the full page.
     if _is_htmx(request):
         return templates.TemplateResponse(request, partial, context)
     status_code = status.HTTP_422_UNPROCESSABLE_CONTENT if failed else status.HTTP_200_OK
@@ -224,14 +224,14 @@ def _study_context(session, deck, today: date, started: datetime) -> dict:
         "started": started,
         "card": pending[0] if pending else None,
         "remaining": len(pending),
-        # Nicht gewusste Karten sind weiter fällig, kommen aber erst in der nächsten Sitzung.
+        # Cards not known stay due but only come back in the next session.
         "postponed": 0 if pending else len(services.due_cards(session, deck, today)),
     }
 
 
 @router.get("/decks/{deck_id}/study")
 def study(request: Request, deck: DeckDep, session: SessionDep, today: TodayDep, now: NowDep):
-    # Jeder Aufruf beginnt eine neue Sitzung; ihr Startzeitpunkt läuft im Formular mit.
+    # Each request starts a new session; its start time travels along in the form.
     context = _study_context(session, deck, today, now)
     return templates.TemplateResponse(request, "study.html", context)
 
@@ -246,7 +246,7 @@ def answer_card(
     known: Annotated[bool, Form()],
     started: Annotated[datetime, Form()],
 ):
-    # Doppelt abgeschickte Antworten zählen nicht noch einmal.
+    # Answers submitted twice do not count again.
     if services.is_pending(card, today, started):
         services.review_card(session, card, known, today, now)
     context = _study_context(session, card.deck, today, started)

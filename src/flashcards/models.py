@@ -5,7 +5,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 def utc_now() -> datetime:
-    # SQLModel speichert Zeitstempel nur mit Zeitzone, intern immer als UTC.
+    # SQLModel stores timestamps only with a time zone, internally always as UTC.
     return datetime.now(UTC)
 
 
@@ -24,7 +24,7 @@ class Card(SQLModel, table=True):
     deck_id: int = Field(foreign_key="deck.id", ondelete="CASCADE", index=True)
     front: str
     back: str
-    # Neue Karten starten in Fach 1 und sind sofort fällig.
+    # New cards start in box 1 and are due immediately.
     box: int = Field(default=1)
     due_date: date = Field(default_factory=date.today)
     last_reviewed_at: datetime | None = None

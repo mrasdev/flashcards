@@ -1,10 +1,10 @@
 <section id="decks">
   <form class="inline-form" method="post" action="/decks"
         hx-post="/decks" hx-target="#decks" hx-swap="outerHTML">
-    <input type="text" name="name" value="{{ name }}" placeholder="Name des neuen Decks"
-           aria-label="Name des neuen Decks" required
+    <input type="text" name="name" value="{{ name }}" placeholder="Name of the new deck"
+           aria-label="Name of the new deck" required
            {% if error %}aria-invalid="true"{% endif %}>
-    <button type="submit">Deck anlegen</button>
+    <button type="submit">Add deck</button>
   </form>
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
@@ -13,8 +13,8 @@
     <thead>
       <tr>
         <th scope="col">Deck</th>
-        <th scope="col">Heute fällig</th>
-        <th scope="col"><span class="visually-hidden">Aktionen</span></th>
+        <th scope="col">Due today</th>
+        <th scope="col"><span class="visually-hidden">Actions</span></th>
       </tr>
     </thead>
     <tbody>
@@ -24,6 +24,6 @@
     </tbody>
   </table>
   {% else %}
-  <p>Noch keine Decks vorhanden. Lege oben dein erstes Deck an.</p>
+  <p>No decks yet. Add your first deck above.</p>
   {% endif %}
 </section>

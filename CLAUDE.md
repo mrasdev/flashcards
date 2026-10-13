@@ -1,47 +1,46 @@
 # Flashcards
 
-Karteikarten-Trainer mit Leitner-System als Webapp.
+Flashcard trainer using the Leitner system as a web app.
 
-## Tech-Stack
+## Tech stack
 
-- Python 3.12+ (Code bleibt 3.12-kompatibel, lokal läuft 3.14)
+- Python 3.12+ (code stays 3.12-compatible, 3.14 runs locally)
 - FastAPI
-- SQLModel mit SQLite
-- Jinja2-Templates, HTMX, Pico.css (als Dateien in `src/flashcards/static/`, kein CDN)
+- SQLModel with SQLite
+- Jinja2 templates, HTMX, Pico.css (as files in `src/flashcards/static/`, no CDN)
 
-## Projektstruktur
+## Project structure
 
-- src-Layout: Anwendungscode in `src/flashcards/`
+- src layout: application code in `src/flashcards/`
 - Tests in `tests/`
-- Abhängigkeiten in `pyproject.toml`
-- Planung und Fortschritt: `docs/PLAN.md`
+- Dependencies in `pyproject.toml`
+- Planning and progress: `docs/PLAN.md`
 
-## Architektur
+## Architecture
 
-- `leitner.py`: reine Funktionen, kein Import von FastAPI oder SQLModel
-- `services.py`: Datenbanklogik, gemeinsam für API und HTML-Oberfläche
-- `routers/api.py` liefert JSON unter `/api`, `routers/pages.py` liefert HTML und HTMX-Partials
-- Datum und Uhrzeit nur über die Dependencies `get_today()` / `get_now()` aus `deps.py`, nie direkt `date.today()` oder `datetime.now()` in Logik oder Routen
+- `leitner.py`: pure functions, no import of FastAPI or SQLModel
+- `services.py`: database logic, shared by the API and the HTML interface
+- `routers/api.py` serves JSON under `/api`, `routers/pages.py` serves HTML and HTMX partials
+- Date and time only through the dependencies `get_today()` / `get_now()` from `deps.py`, never `date.today()` or `datetime.now()` directly in logic or routes
 
-## Befehle
+## Commands
 
-- Installation: `pip install -e ".[dev]"`
+- Install: `pip install -e ".[dev]"`
 - Linting: `ruff check .`
 - Tests: `pytest`
-- App starten: `uvicorn flashcards.main:app --reload`
-- Vor jedem Commit: `ruff check . && pytest`
+- Start the app: `uvicorn flashcards.main:app --reload`
+- Before every commit: `ruff check . && pytest`
 
-## Konventionen
+## Conventions
 
-- Code und Bezeichner auf Englisch
-- Oberfläche (UI-Texte) und Kommentare auf Deutsch
+- Code, identifiers, UI texts, comments and documentation in English
 
-## Arbeitsweise
+## Workflow
 
-- Kleine Schritte: ein Feature pro Auftrag, nicht mehrere Phasen am Stück
-- Neue Logik testgetrieben: erst die Tests schreiben und ausführen (müssen rot sein), dann implementieren. Tests dabei nicht an den Code anpassen
-- Nach jedem Feature anhalten: geänderte Dateien auflisten und auf mein Review warten. Erst nach meiner Freigabe committen
-- Nichts über den Auftrag hinaus einbauen. Sinnvolle Ergänzungen (Limits, Schutzmechanismen, Sonderfälle) vorher vorschlagen, nicht selbst umsetzen
-- Keine neuen Abhängigkeiten ohne Rückfrage
-- Häkchen in `docs/PLAN.md` erst setzen, wenn ich das Feature im Browser geprüft habe
-- Neue Features auf einem eigenen Branch (`feature/<name>`), nicht direkt auf `main`
+- Small steps: one feature per task, not several phases at once
+- New logic test-driven: write and run the tests first (they must fail), then implement. Do not adapt the tests to the code
+- Stop after every feature: list the changed files and wait for my review. Commit only after my approval
+- Build nothing beyond the task. Propose useful additions (limits, safeguards, edge cases) first, do not implement them unasked
+- No new dependencies without asking
+- Only tick boxes in `docs/PLAN.md` once I have checked the feature in the browser
+- New features on their own branch (`feature/<name>`), not directly on `main`

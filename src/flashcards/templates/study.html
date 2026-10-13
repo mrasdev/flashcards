@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}{{ deck.name }} lernen – Flashcards{% endblock %}
+{% block title %}Study {{ deck.name }} – Flashcards{% endblock %}
 {% block scripts %}<script src="/static/study.js" defer></script>{% endblock %}
 {% block content %}
-<p><a href="/decks/{{ deck.id }}">← Zurück zum Deck</a></p>
-<h1>{{ deck.name }} lernen</h1>
+<p><a href="/decks/{{ deck.id }}">← Back to deck</a></p>
+<h1>Study {{ deck.name }}</h1>
 {% include "partials/study_card.html" %}
 {% endblock %}

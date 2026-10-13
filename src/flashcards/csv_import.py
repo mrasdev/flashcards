@@ -1,4 +1,4 @@
-"""CSV-Import im Format ``vorne;hinten`` – eine Karte pro Zeile, keine Kopfzeile."""
+"""CSV import in the format ``front;back``: one card per line, no header row."""
 
 import csv
 import io
@@ -33,7 +33,7 @@ class ImportResult:
 
 
 def decode(data: bytes) -> str:
-    """UTF-8 (mit oder ohne BOM), ersatzweise Windows-1252, wie es Excel exportiert."""
+    """UTF-8 (with or without BOM), falling back to Windows-1252 as exported by Excel."""
     try:
         return data.decode("utf-8-sig")
     except UnicodeDecodeError:
@@ -41,7 +41,7 @@ def decode(data: bytes) -> str:
 
 
 def parse_csv(text: str) -> ParsedCsv:
-    """Zerlegt den Text in Karten und meldet fehlerhafte Zeilen mit Zeilennummer."""
+    """Split the text into cards and report invalid lines with their line number."""
     parsed = ParsedCsv()
     reader = csv.reader(io.StringIO(text, newline=""), delimiter=DELIMITER)
     line = 1
@@ -51,7 +51,7 @@ def parse_csv(text: str) -> ParsedCsv:
         except StopIteration:
             break
         except csv.Error:
-            parsed.errors.append(RowError(line, "Zeile ist kein gültiges CSV."))
+            parsed.errors.append(RowError(line, "Line is not valid CSV."))
             line = reader.line_num + 1
             continue
         start_line, line = line, reader.line_num + 1
@@ -59,20 +59,20 @@ def parse_csv(text: str) -> ParsedCsv:
         fields = [value.strip() for value in fields]
         if not any(fields):
             if len(fields) > 1:
-                parsed.errors.append(RowError(start_line, "Vorder- und Rückseite sind leer."))
-            # Leerzeilen werden stillschweigend übergangen.
+                parsed.errors.append(RowError(start_line, "Front and back are empty."))
+            # Blank lines are skipped silently.
             continue
         if len(fields) != 2:
             parsed.errors.append(
                 RowError(
                     start_line,
-                    f"Erwartet 2 Spalten (vorne;hinten), gefunden: {len(fields)}.",
+                    f"Expected 2 columns (front;back), found: {len(fields)}.",
                 )
             )
             continue
         front, back = fields
         if not front or not back:
-            parsed.errors.append(RowError(start_line, "Vorder- oder Rückseite ist leer."))
+            parsed.errors.append(RowError(start_line, "Front or back is empty."))
             continue
         parsed.rows.append((front, back))
     return parsed
@@ -81,10 +81,10 @@ def parse_csv(text: str) -> ParsedCsv:
 def import_cards(
     session: Session, deck: Deck, rows: list[tuple[str, str]], today: date
 ) -> tuple[int, int]:
-    """Legt neue Karten an und gibt (importiert, übersprungen) zurück.
+    """Create new cards and return (imported, skipped).
 
-    Als Duplikat gilt eine Karte, deren Vorder- und Rückseite im Deck oder weiter
-    oben in derselben Datei schon vorkommen.
+    A card counts as a duplicate if its front and back already exist in the deck
+    or earlier in the same file.
     """
     seen = set(session.exec(select(Card.front, Card.back).where(Card.deck_id == deck.id)).all())
     imported = skipped = 0

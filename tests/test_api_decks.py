@@ -1,29 +1,29 @@
 import pytest
 
 
-def create_deck(client, name="Spanisch"):
+def create_deck(client, name="Spanish"):
     response = client.post("/api/decks", json={"name": name})
     assert response.status_code == 201
     return response.json()
 
 
 def test_create_deck_returns_201_and_trims_name(client):
-    response = client.post("/api/decks", json={"name": "  Spanisch  "})
+    response = client.post("/api/decks", json={"name": "  Spanish  "})
 
     assert response.status_code == 201
     body = response.json()
-    assert body["name"] == "Spanisch"
+    assert body["name"] == "Spanish"
     assert isinstance(body["id"], int)
 
 
 def test_list_decks_is_sorted_by_name(client):
-    create_deck(client, "Spanisch")
-    create_deck(client, "Englisch")
+    create_deck(client, "Spanish")
+    create_deck(client, "French")
 
     response = client.get("/api/decks")
 
     assert response.status_code == 200
-    assert [deck["name"] for deck in response.json()] == ["Englisch", "Spanisch"]
+    assert [deck["name"] for deck in response.json()] == ["French", "Spanish"]
 
 
 def test_read_deck(client):
@@ -48,7 +48,7 @@ def test_rename_deck(client):
 def test_rename_deck_to_same_name_is_allowed(client):
     deck = create_deck(client)
 
-    response = client.patch(f"/api/decks/{deck['id']}", json={"name": "Spanisch"})
+    response = client.patch(f"/api/decks/{deck['id']}", json={"name": "Spanish"})
 
     assert response.status_code == 200
 
@@ -66,7 +66,7 @@ def test_delete_deck(client):
 def test_delete_deck_removes_its_cards(client):
     deck = create_deck(client)
     card = client.post(
-        f"/api/decks/{deck['id']}/cards", json={"front": "hola", "back": "hallo"}
+        f"/api/decks/{deck['id']}/cards", json={"front": "hola", "back": "hello"}
     ).json()
 
     client.delete(f"/api/decks/{deck['id']}")
@@ -77,20 +77,20 @@ def test_delete_deck_removes_its_cards(client):
 def test_create_duplicate_deck_returns_409(client):
     create_deck(client)
 
-    response = client.post("/api/decks", json={"name": " Spanisch "})
+    response = client.post("/api/decks", json={"name": " Spanish "})
 
     assert response.status_code == 409
     assert len(client.get("/api/decks").json()) == 1
 
 
 def test_rename_to_existing_name_returns_409(client):
-    create_deck(client, "Spanisch")
-    other = create_deck(client, "Englisch")
+    create_deck(client, "Spanish")
+    other = create_deck(client, "French")
 
-    response = client.patch(f"/api/decks/{other['id']}", json={"name": "Spanisch"})
+    response = client.patch(f"/api/decks/{other['id']}", json={"name": "Spanish"})
 
     assert response.status_code == 409
-    assert client.get(f"/api/decks/{other['id']}").json()["name"] == "Englisch"
+    assert client.get(f"/api/decks/{other['id']}").json()["name"] == "French"
 
 
 @pytest.mark.parametrize("payload", [{"name": ""}, {"name": "   "}, {}])

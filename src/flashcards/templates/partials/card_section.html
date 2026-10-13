@@ -1,13 +1,13 @@
 <section id="cards">
   {% include "partials/stats.html" %}
-  <h2>Karten</h2>
+  <h2>Cards</h2>
   <form class="inline-form" method="post" action="/decks/{{ deck.id }}/cards"
         hx-post="/decks/{{ deck.id }}/cards" hx-target="#cards" hx-swap="outerHTML">
-    <input type="text" name="front" value="{{ front }}" placeholder="Vorderseite"
-           aria-label="Vorderseite" required {% if error %}aria-invalid="true"{% endif %}>
-    <input type="text" name="back" value="{{ back }}" placeholder="Rückseite"
-           aria-label="Rückseite" required {% if error %}aria-invalid="true"{% endif %}>
-    <button type="submit">Karte anlegen</button>
+    <input type="text" name="front" value="{{ front }}" placeholder="Front"
+           aria-label="Front" required {% if error %}aria-invalid="true"{% endif %}>
+    <input type="text" name="back" value="{{ back }}" placeholder="Back"
+           aria-label="Back" required {% if error %}aria-invalid="true"{% endif %}>
+    <button type="submit">Add card</button>
   </form>
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
@@ -15,10 +15,10 @@
   <table>
     <thead>
       <tr>
-        <th scope="col">Vorderseite</th>
-        <th scope="col">Rückseite</th>
-        <th scope="col">Fach</th>
-        <th scope="col"><span class="visually-hidden">Aktionen</span></th>
+        <th scope="col">Front</th>
+        <th scope="col">Back</th>
+        <th scope="col">Box</th>
+        <th scope="col"><span class="visually-hidden">Actions</span></th>
       </tr>
     </thead>
     <tbody>
@@ -28,22 +28,22 @@
     </tbody>
   </table>
   {% else %}
-  <p>Dieses Deck enthält noch keine Karten.</p>
+  <p>This deck has no cards yet.</p>
   {% endif %}
 
-  <h2>CSV-Import</h2>
+  <h2>CSV import</h2>
   {% if import_result %}{% include "partials/import_result.html" %}{% endif %}
   <form class="inline-form" method="post" action="/decks/{{ deck.id }}/import"
         enctype="multipart/form-data"
         hx-post="/decks/{{ deck.id }}/import" hx-encoding="multipart/form-data"
         hx-target="#cards" hx-swap="outerHTML">
-    <input type="file" name="file" accept=".csv,text/csv,text/plain" aria-label="CSV-Datei"
+    <input type="file" name="file" accept=".csv,text/csv,text/plain" aria-label="CSV file"
            required {% if import_error %}aria-invalid="true"{% endif %}>
-    <button type="submit">Importieren</button>
+    <button type="submit">Import</button>
   </form>
   {% if import_error %}<p class="error" role="alert">{{ import_error }}</p>{% endif %}
   <p><small>
-    Format: eine Karte pro Zeile als <code>vorne;hinten</code>, ohne Kopfzeile.
-    Bereits vorhandene Karten werden übersprungen.
+    Format: one card per line as <code>front;back</code>, no header row.
+    Cards that already exist are skipped.
   </small></p>
 </section>

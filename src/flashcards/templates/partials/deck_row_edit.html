@@ -1,12 +1,12 @@
 <tr id="deck-{{ deck.id }}">
   <td colspan="3">
     <form class="inline-form" hx-put="/decks/{{ deck.id }}" hx-target="closest tr" hx-swap="outerHTML">
-      <input type="text" name="name" value="{{ name }}" aria-label="Neuer Name" required autofocus
+      <input type="text" name="name" value="{{ name }}" aria-label="New name" required autofocus
              {% if error %}aria-invalid="true"{% endif %}>
-      <button type="submit">Speichern</button>
+      <button type="submit">Save</button>
       <button type="button" class="secondary outline"
               hx-get="/decks/{{ deck.id }}/row" hx-target="closest tr" hx-swap="outerHTML">
-        Abbrechen
+        Cancel
       </button>
     </form>
     {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}

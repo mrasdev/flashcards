@@ -9,7 +9,7 @@ from flashcards.db import init_db, make_engine
 from flashcards.models import Card, Deck
 
 
-def make_deck(session, name="Spanisch"):
+def make_deck(session, name="Spanish"):
     deck = Deck(name=name)
     session.add(deck)
     session.commit()
@@ -19,7 +19,7 @@ def make_deck(session, name="Spanisch"):
 
 def test_new_card_starts_in_box_one_and_is_due_today(session):
     deck = make_deck(session)
-    card = Card(deck_id=deck.id, front="hola", back="hallo")
+    card = Card(deck_id=deck.id, front="hola", back="hello")
     session.add(card)
     session.commit()
     session.refresh(card)
@@ -32,20 +32,20 @@ def test_new_card_starts_in_box_one_and_is_due_today(session):
 
 def test_deleting_deck_removes_its_cards(session):
     deck = make_deck(session)
-    other = make_deck(session, name="Englisch")
-    session.add(Card(deck_id=deck.id, front="hola", back="hallo"))
-    session.add(Card(deck_id=other.id, front="dog", back="Hund"))
+    other = make_deck(session, name="French")
+    session.add(Card(deck_id=deck.id, front="hola", back="hello"))
+    session.add(Card(deck_id=other.id, front="chien", back="dog"))
     session.commit()
 
     session.delete(deck)
     session.commit()
 
-    assert [card.front for card in session.exec(select(Card)).all()] == ["dog"]
+    assert [card.front for card in session.exec(select(Card)).all()] == ["chien"]
 
 
 def test_database_cascades_on_raw_delete(session):
     deck = make_deck(session)
-    session.add(Card(deck_id=deck.id, front="hola", back="hallo"))
+    session.add(Card(deck_id=deck.id, front="hola", back="hello"))
     session.commit()
 
     session.exec(delete(Deck).where(Deck.id == deck.id))
@@ -56,7 +56,7 @@ def test_database_cascades_on_raw_delete(session):
 
 def test_duplicate_deck_name_is_rejected(session):
     make_deck(session)
-    session.add(Deck(name="Spanisch"))
+    session.add(Deck(name="Spanish"))
 
     with pytest.raises(IntegrityError):
         session.commit()
@@ -65,14 +65,14 @@ def test_duplicate_deck_name_is_rejected(session):
 @pytest.mark.parametrize("box", [0, 6])
 def test_box_outside_range_is_rejected(session, box):
     deck = make_deck(session)
-    session.add(Card(deck_id=deck.id, front="hola", back="hallo", box=box))
+    session.add(Card(deck_id=deck.id, front="hola", back="hello", box=box))
 
     with pytest.raises(IntegrityError):
         session.commit()
 
 
 def test_card_requires_existing_deck(session):
-    session.add(Card(deck_id=999, front="hola", back="hallo"))
+    session.add(Card(deck_id=999, front="hola", back="hello"))
 
     with pytest.raises(IntegrityError):
         session.commit()

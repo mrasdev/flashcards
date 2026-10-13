@@ -1,17 +1,17 @@
 <article id="import-result">
   <p>
-    <strong>Import abgeschlossen:</strong>
-    <span data-import="imported">{{ import_result.imported }}</span> importiert,
-    <span data-import="skipped">{{ import_result.skipped }}</span> als Duplikat übersprungen,
-    <span data-import="errors">{{ import_result.errors | length }}</span> fehlerhaft.
+    <strong>Import finished:</strong>
+    <span data-import="imported">{{ import_result.imported }}</span> imported,
+    <span data-import="skipped">{{ import_result.skipped }}</span> skipped as duplicates,
+    <span data-import="errors">{{ import_result.errors | length }}</span> invalid.
   </p>
   {% if import_result.errors %}
   <ul>
     {% for row_error in import_result.errors[:20] %}
-    <li>Zeile {{ row_error.line }}: {{ row_error.message }}</li>
+    <li>Line {{ row_error.line }}: {{ row_error.message }}</li>
     {% endfor %}
     {% if import_result.errors | length > 20 %}
-    <li>… und {{ import_result.errors | length - 20 }} weitere fehlerhafte Zeilen.</li>
+    <li>… and {{ import_result.errors | length - 20 }} more invalid lines.</li>
     {% endif %}
   </ul>
   {% endif %}

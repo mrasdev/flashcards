@@ -10,67 +10,67 @@ from tests.conftest import TODAY
 HTMX = {"HX-Request": "true"}
 
 
-# --- Parser (reine Funktion) -------------------------------------------------
+# --- Parser (pure function) --------------------------------------------------
 
 
 def test_parse_valid_rows():
-    parsed = parse_csv("hola;hallo\nadiós;tschüss\n")
+    parsed = parse_csv("hola;hello\nadiós;goodbye\n")
 
-    assert parsed.rows == [("hola", "hallo"), ("adiós", "tschüss")]
+    assert parsed.rows == [("hola", "hello"), ("adiós", "goodbye")]
     assert parsed.errors == []
 
 
 def test_parse_without_trailing_newline_and_with_crlf():
-    parsed = parse_csv("hola;hallo\r\nadiós;tschüss")
+    parsed = parse_csv("hola;hello\r\nadiós;goodbye")
 
-    assert parsed.rows == [("hola", "hallo"), ("adiós", "tschüss")]
+    assert parsed.rows == [("hola", "hello"), ("adiós", "goodbye")]
 
 
 def test_parse_trims_whitespace():
-    assert parse_csv("  hola ;  hallo  \n").rows == [("hola", "hallo")]
+    assert parse_csv("  hola ;  hello  \n").rows == [("hola", "hello")]
 
 
 def test_parse_quoted_fields_may_contain_delimiter_quotes_and_newlines():
-    text = '"uno; dos";"eins; zwei"\n"er sagt ""hola""";"Zeile 1\nZeile 2"\n'
+    text = '"uno; dos";"one; two"\n"he says ""hola""";"line 1\nline 2"\n'
 
     parsed = parse_csv(text)
 
     assert parsed.rows == [
-        ("uno; dos", "eins; zwei"),
-        ('er sagt "hola"', "Zeile 1\nZeile 2"),
+        ("uno; dos", "one; two"),
+        ('he says "hola"', "line 1\nline 2"),
     ]
     assert parsed.errors == []
 
 
 def test_parse_ignores_blank_lines_and_keeps_line_numbers():
-    parsed = parse_csv("hola;hallo\n\n   \nnur eine Spalte\nadiós;tschüss\n")
+    parsed = parse_csv("hola;hello\n\n   \nonly one column\nadiós;goodbye\n")
 
-    assert parsed.rows == [("hola", "hallo"), ("adiós", "tschüss")]
+    assert parsed.rows == [("hola", "hello"), ("adiós", "goodbye")]
     assert [error.line for error in parsed.errors] == [4]
 
 
 @pytest.mark.parametrize(
     ("line", "fragment"),
     [
-        ("nur eine Spalte", "gefunden: 1"),
-        ("a;b;c", "gefunden: 3"),
-        (";hallo", "Vorder- oder Rückseite ist leer"),
-        ("hola;", "Vorder- oder Rückseite ist leer"),
-        ("hola;   ", "Vorder- oder Rückseite ist leer"),
-        (";", "Vorder- und Rückseite sind leer"),
+        ("only one column", "found: 1"),
+        ("a;b;c", "found: 3"),
+        (";hello", "Front or back is empty"),
+        ("hola;", "Front or back is empty"),
+        ("hola;   ", "Front or back is empty"),
+        (";", "Front and back are empty"),
     ],
 )
 def test_parse_reports_invalid_rows(line, fragment):
-    parsed = parse_csv(f"hola;hallo\n{line}\n")
+    parsed = parse_csv(f"hola;hello\n{line}\n")
 
-    assert parsed.rows == [("hola", "hallo")]
+    assert parsed.rows == [("hola", "hello")]
     assert len(parsed.errors) == 1
     assert parsed.errors[0].line == 2
     assert fragment in parsed.errors[0].message
 
 
 def test_parse_line_number_after_multiline_field():
-    parsed = parse_csv('"a\nb";c\nkaputt\n')
+    parsed = parse_csv('"a\nb";c\nbroken\n')
 
     assert parsed.rows == [("a\nb", "c")]
     assert [error.line for error in parsed.errors] == [3]
@@ -85,17 +85,17 @@ def test_parse_empty_text():
 
 @pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "cp1252"])
 def test_decode_handles_excel_encodings(encoding):
-    data = "Übung;größer\n".encode(encoding)
+    data = "café;crème\n".encode(encoding)
 
-    assert parse_csv(decode(data)).rows == [("Übung", "größer")]
+    assert parse_csv(decode(data)).rows == [("café", "crème")]
 
 
-# --- Import in die Datenbank -------------------------------------------------
+# --- Import into the database ------------------------------------------------
 
 
 @pytest.fixture
 def db_deck(session):
-    deck = Deck(name="Spanisch")
+    deck = Deck(name="Spanish")
     session.add(deck)
     session.commit()
     session.refresh(deck)
@@ -107,32 +107,32 @@ def cards_of(session, deck):
 
 
 def test_import_creates_cards_in_first_box_due_today(session, db_deck):
-    result = import_csv(session, db_deck, "hola;hallo\nadiós;tschüss\n".encode(), TODAY)
+    result = import_csv(session, db_deck, "hola;hello\nadiós;goodbye\n".encode(), TODAY)
 
     assert (result.imported, result.skipped, result.errors) == (2, 0, [])
     cards = cards_of(session, db_deck)
-    assert [(card.front, card.back) for card in cards] == [("hola", "hallo"), ("adiós", "tschüss")]
+    assert [(card.front, card.back) for card in cards] == [("hola", "hello"), ("adiós", "goodbye")]
     assert all(card.box == 1 and card.due_date == TODAY for card in cards)
 
 
 def test_import_skips_duplicates_in_deck_and_within_file(session, db_deck):
-    session.add(Card(deck_id=db_deck.id, front="hola", back="hallo"))
+    session.add(Card(deck_id=db_deck.id, front="hola", back="hello"))
     session.commit()
 
     result = import_csv(
-        session, db_deck, b"hola;hallo\nadios;tschuess\nadios;tschuess\nhola;guten Tag\n", TODAY
+        session, db_deck, b"hola;hello\nadios;goodbye\nadios;goodbye\nhola;good day\n", TODAY
     )
 
     assert (result.imported, result.skipped) == (2, 2)
     assert [(card.front, card.back) for card in cards_of(session, db_deck)] == [
-        ("hola", "hallo"),
-        ("adios", "tschuess"),
-        ("hola", "guten Tag"),
+        ("hola", "hello"),
+        ("adios", "goodbye"),
+        ("hola", "good day"),
     ]
 
 
 def test_second_import_of_same_file_adds_nothing(session, db_deck):
-    data = b"hola;hallo\nadios;tschuess\n"
+    data = b"hola;hello\nadios;goodbye\n"
     import_csv(session, db_deck, data, TODAY)
 
     result = import_csv(session, db_deck, data, TODAY)
@@ -142,20 +142,20 @@ def test_second_import_of_same_file_adds_nothing(session, db_deck):
 
 
 def test_import_keeps_valid_rows_when_others_are_invalid(session, db_deck):
-    result = import_csv(session, db_deck, b"hola;hallo\nkaputt\na;b;c\nadios;tschuess\n", TODAY)
+    result = import_csv(session, db_deck, b"hola;hello\nbroken\na;b;c\nadios;goodbye\n", TODAY)
 
     assert (result.imported, result.skipped) == (2, 0)
     assert [error.line for error in result.errors] == [2, 3]
 
 
 def test_same_card_in_other_deck_is_not_a_duplicate(session, db_deck):
-    other = Deck(name="Englisch")
+    other = Deck(name="French")
     session.add(other)
     session.commit()
-    session.add(Card(deck_id=other.id, front="hola", back="hallo"))
+    session.add(Card(deck_id=other.id, front="hola", back="hello"))
     session.commit()
 
-    result = import_csv(session, db_deck, b"hola;hallo\n", TODAY)
+    result = import_csv(session, db_deck, b"hola;hello\n", TODAY)
 
     assert (result.imported, result.skipped) == (1, 0)
 
@@ -164,11 +164,11 @@ def test_same_card_in_other_deck_is_not_a_duplicate(session, db_deck):
 
 
 def upload(client, url, content, **kwargs):
-    return client.post(url, files={"file": ("karten.csv", content, "text/csv")}, **kwargs)
+    return client.post(url, files={"file": ("cards.csv", content, "text/csv")}, **kwargs)
 
 
 def test_api_import_returns_result(client, deck):
-    content = "hola;hallo\nÜbung;größer\nkaputt\nhola;hallo\n".encode("cp1252")
+    content = "hola;hello\ncafé;crème\nbroken\nhola;hello\n".encode("cp1252")
 
     response = upload(client, f"/api/decks/{deck['id']}/import", content)
 
@@ -177,7 +177,7 @@ def test_api_import_returns_result(client, deck):
     assert (body["imported"], body["skipped"]) == (2, 1)
     assert [error["line"] for error in body["errors"]] == [3]
     cards = client.get(f"/api/decks/{deck['id']}/cards").json()
-    assert [card["front"] for card in cards] == ["hola", "Übung"]
+    assert [card["front"] for card in cards] == ["hola", "café"]
     assert all(card["box"] == 1 and card["due_date"] == TODAY.isoformat() for card in cards)
 
 
@@ -189,21 +189,21 @@ def test_api_import_errors(client, deck):
     assert client.get(f"/api/decks/{deck['id']}/cards").json() == []
 
 
-# --- Oberfläche --------------------------------------------------------------
+# --- UI ----------------------------------------------------------------------
 
 
 def test_deck_page_contains_import_form(client, deck):
     html = client.get(f"/decks/{deck['id']}").text
 
-    assert "CSV-Import" in html
+    assert "CSV import" in html
     assert f'hx-post="/decks/{deck["id"]}/import"' in html
     assert 'hx-encoding="multipart/form-data"' in html
     assert 'type="file"' in html
-    assert "Import abgeschlossen" not in html
+    assert "Import finished" not in html
 
 
 def test_page_import_with_htmx_shows_result_cards_and_stats(client, deck):
-    content = "hola;hallo\nadiós;tschüss\nkaputt\nhola;hallo\n".encode()
+    content = "hola;hello\nadiós;goodbye\nbroken\nhola;hello\n".encode()
 
     response = upload(client, f"/decks/{deck['id']}/import", content, headers=HTMX)
 
@@ -211,27 +211,27 @@ def test_page_import_with_htmx_shows_result_cards_and_stats(client, deck):
     html = response.text
     assert "<html" not in html
     assert 'id="cards"' in html
-    assert "Import abgeschlossen" in html
+    assert "Import finished" in html
     counts = dict(re.findall(r'data-import="(\w+)">(\d+)<', html))
     assert counts == {"imported": "2", "skipped": "1", "errors": "1"}
-    assert "Zeile 3:" in html
+    assert "Line 3:" in html
     assert "adiós" in html
     assert re.search(r'data-stat="total">2<', html)
 
 
 def test_page_import_without_htmx_renders_full_page(client, deck):
-    response = upload(client, f"/decks/{deck['id']}/import", b"hola;hallo\n")
+    response = upload(client, f"/decks/{deck['id']}/import", b"hola;hello\n")
 
     assert response.status_code == 200
     assert "<html" in response.text
-    assert "Import abgeschlossen" in response.text
+    assert "Import finished" in response.text
 
 
 def test_page_import_without_file_shows_error(client, deck):
     response = client.post(f"/decks/{deck['id']}/import", headers=HTMX)
 
     assert response.status_code == 200
-    assert "Bitte eine CSV-Datei auswählen." in response.text
+    assert "Please choose a CSV file." in response.text
 
 
 def test_page_import_of_too_large_file_shows_error(client, deck):
@@ -239,7 +239,7 @@ def test_page_import_of_too_large_file_shows_error(client, deck):
 
     response = upload(client, f"/decks/{deck['id']}/import", content, headers=HTMX)
 
-    assert "Die Datei ist größer als 1 MB." in response.text
+    assert "The file is larger than 1 MB." in response.text
     assert client.get(f"/api/decks/{deck['id']}/cards").json() == []
 
 

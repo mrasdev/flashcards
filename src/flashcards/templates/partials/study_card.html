@@ -1,41 +1,41 @@
 <section id="study">
   {% if card %}
   <p>
-    Noch {{ remaining }} {{ "Karte" if remaining == 1 else "Karten" }} in dieser Sitzung
-    · Fach {{ card.box }}
+    {{ remaining }} {{ "card" if remaining == 1 else "cards" }} left in this session
+    · Box {{ card.box }}
   </p>
   <article>
     <p class="study-front">{{ card.front }}</p>
     <details data-study-reveal>
-      <summary role="button" class="secondary">Aufdecken</summary>
+      <summary role="button" class="secondary">Reveal</summary>
       <p class="study-back">{{ card.back }}</p>
       <form class="answer-form" method="post" action="/cards/{{ card.id }}/answer"
             hx-post="/cards/{{ card.id }}/answer" hx-target="#study" hx-swap="outerHTML">
         <input type="hidden" name="started" value="{{ started.isoformat() }}">
-        <button type="submit" name="known" value="true" data-study-key="j">Gewusst</button>
+        <button type="submit" name="known" value="true" data-study-key="k">Known</button>
         <button type="submit" name="known" value="false" class="contrast" data-study-key="n">
-          Nicht gewusst
+          Not known
         </button>
       </form>
     </details>
   </article>
   <p class="key-hint"><small>
-    Tasten: <kbd>Leertaste</kbd> aufdecken · <kbd>J</kbd> gewusst · <kbd>N</kbd> nicht gewusst
+    Keys: <kbd>Space</kbd> reveal · <kbd>K</kbd> known · <kbd>N</kbd> not known
   </small></p>
   {% elif postponed %}
   <article>
     <p>
-      <strong>Sitzung beendet.</strong>
-      {{ postponed }} nicht {{ "gewusste Karte kommt" if postponed == 1 else "gewusste Karten kommen" }}
-      in der nächsten Sitzung wieder.
+      <strong>Session finished.</strong>
+      {{ postponed }} {{ "card you did not know comes" if postponed == 1 else "cards you did not know come" }}
+      back in the next session.
     </p>
-    <a href="/decks/{{ deck.id }}/study" role="button">Neue Sitzung starten</a>
-    <a href="/decks/{{ deck.id }}" role="button" class="secondary outline">Zurück zum Deck</a>
+    <a href="/decks/{{ deck.id }}/study" role="button">Start new session</a>
+    <a href="/decks/{{ deck.id }}" role="button" class="secondary outline">Back to deck</a>
   </article>
   {% else %}
   <article>
-    <p><strong>Fertig für heute!</strong> In diesem Deck ist keine Karte mehr fällig.</p>
-    <a href="/decks/{{ deck.id }}" role="button" class="secondary outline">Zurück zum Deck</a>
+    <p><strong>Done for today!</strong> No more cards are due in this deck.</p>
+    <a href="/decks/{{ deck.id }}" role="button" class="secondary outline">Back to deck</a>
   </article>
   {% endif %}
 </section>
