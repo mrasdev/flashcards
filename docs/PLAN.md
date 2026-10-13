@@ -1,137 +1,137 @@
-# Umsetzungsplan Flashcards
+# Flashcards implementation plan
 
-Karteikarten-Trainer nach Leitner als Webapp (FastAPI, SQLModel/SQLite, Jinja2, HTMX, Pico.css) mit Decks, Karten, Lernmodus, Statistik und CSV-Import. Jede Phase endet mit `ruff check . && pytest` und einem Commit.
+Flashcard trainer based on the Leitner system as a web app (FastAPI, SQLModel/SQLite, Jinja2, HTMX, Pico.css) with decks, cards, study mode, statistics and CSV import. Each phase ends with `ruff check . && pytest` and a commit.
 
-## Fortschritt
+## Progress
 
-- [x] Phase 0 – Projektgerüst
-- [x] Phase 1 – Datenmodell
-- [x] Phase 2 – Leitner-Logik (reine Funktionen)
-- [x] Phase 3 – REST-API (Decks und Karten)
-- [x] Phase 4 – HTML-Oberfläche (Decks und Karten)
-- [x] Phase 5a – Lernmodus
-- [x] Phase 5b – Statistik
-- [x] Phase 5c – CSV-Import
-- [x] Verifikation am Ende
-- [x] Tastatursteuerung im Lernmodus
+- [x] Phase 0 – Project skeleton
+- [x] Phase 1 – Data model
+- [x] Phase 2 – Leitner logic (pure functions)
+- [x] Phase 3 – REST API (decks and cards)
+- [x] Phase 4 – HTML interface (decks and cards)
+- [x] Phase 5a – Study mode
+- [x] Phase 5b – Statistics
+- [x] Phase 5c – CSV import
+- [x] Final verification
+- [x] Keyboard control in study mode
 
-## Entscheidungen
+## Decisions
 
-- **Pakete:** zusätzlich zum Stack `uvicorn`, `python-multipart` (Laufzeit) und `httpx` (dev).
-- **Fälligkeit:** Kalendertage. Die Karte speichert ein `due_date` (Datum); fällig ist, was `due_date <= heute` hat.
-- **Lernsitzung:** Jede Karte erscheint pro Sitzung nur einmal. Nicht gewusste Karten kommen erst beim nächsten Start des Lernmodus wieder.
-- **CSV:** keine Kopfzeile, Duplikate (gleiche Vorder- und Rückseite im Deck) werden übersprungen.
-- **Tastatursteuerung ohne Abschalter:** Die Einzeltasten J/N im Lernmodus lassen sich nicht abschalten oder umbelegen, wie es WCAG 2.1.4 verlangen würde. Bewusst so entschieden: Einzelnutzer-App, keine Konformitätsanforderung, und J/N wirken nur bei aufgedeckter Karte.
+- **Packages:** in addition to the stack, `uvicorn`, `python-multipart` (runtime) and `httpx` (dev).
+- **Due dates:** calendar days. A card stores a `due_date` (date); a card is due when `due_date <= today`.
+- **Study session:** each card appears only once per session. Cards not known only come back the next time study mode is started.
+- **CSV:** no header row, duplicates (same front and back in the deck) are skipped.
+- **Keyboard control without an off switch:** the single-key shortcuts K/N in study mode cannot be turned off or remapped, as WCAG 2.1.4 would require. A deliberate decision: single-user app, no conformance requirement, and K/N only act on a revealed card.
 
-## Annahmen
+## Assumptions
 
-- Einzelnutzer, keine Anmeldung.
-- Kein Migrationswerkzeug: Tabellen per `SQLModel.metadata.create_all` beim Start. DB-Pfad über Umgebungsvariable `FLASHCARDS_DB`, Standard `flashcards.db` (in `.gitignore`).
-- Decknamen sind eindeutig; doppelter Name ergibt 409 bzw. Formularfehler.
-- Deck löschen löscht dessen Karten mit (Rückfrage per `hx-confirm`).
-- Karte bearbeiten ändert Fach und Fälligkeit nicht.
-- Karte in Fach 5 gewusst: bleibt in Fach 5, wieder fällig in 14 Tagen.
-- Reihenfolge im Lernmodus: niedrigstes Fach zuerst, dann ältestes Fälligkeitsdatum, dann ID.
-- HTMX und Pico.css liegen als Dateien in `src/flashcards/static/` (kein CDN, läuft offline).
-- "Heute" kommt aus einer FastAPI-Dependency `get_today()`, die Tests überschreiben – keine Zeit-Mocking-Bibliothek nötig.
+- Single user, no login.
+- No migration tool: tables are created with `SQLModel.metadata.create_all` on startup. The DB path comes from the environment variable `FLASHCARDS_DB`, default `flashcards.db` (in `.gitignore`).
+- Deck names are unique; a duplicate name results in 409 or a form error.
+- Deleting a deck also deletes its cards (confirmation via `hx-confirm`).
+- Editing a card does not change its box or due date.
+- A known card in box 5 stays in box 5 and is due again in 14 days.
+- Order in study mode: lowest box first, then oldest due date, then ID.
+- HTMX and Pico.css are stored as files in `src/flashcards/static/` (no CDN, works offline).
+- "Today" comes from a FastAPI dependency `get_today()` that tests override – no time-mocking library needed.
 
-## Zielstruktur
+## Target structure
 
 ```
 pyproject.toml
 .gitignore
 src/flashcards/
   __init__.py
-  main.py            # App, Router, Static, Lifespan (init_db)
-  db.py              # Engine, get_session, init_db
+  main.py            # app, routers, static files, lifespan (init_db)
+  db.py              # engine, get_session, init_db
   models.py          # Deck, Card
-  schemas.py         # Ein-/Ausgabemodelle der API
-  leitner.py         # reine Funktionen
-  services.py        # DB-Operationen für API und HTML gemeinsam
-  csv_import.py      # Parser (rein) + Import
+  schemas.py         # input/output models of the API
+  leitner.py         # pure functions
+  services.py        # DB operations shared by API and HTML
+  csv_import.py      # parser (pure) + import
   deps.py            # get_today
-  routers/api.py     # JSON unter /api
+  routers/api.py     # JSON under /api
   routers/pages.py   # HTML/HTMX
-  templates/         # base.html, Seiten, partials/
+  templates/         # base.html, pages, partials/
   static/            # htmx.min.js, pico.min.css
 tests/
-  conftest.py        # In-Memory-SQLite (StaticPool), Session, TestClient, festes Datum
+  conftest.py        # in-memory SQLite (StaticPool), session, TestClient, fixed date
   test_models.py, test_leitner.py, test_api_decks.py, test_api_cards.py,
   test_pages.py, test_study.py, test_stats.py, test_csv_import.py
 ```
 
-## Phase 0 – Projektgerüst
+## Phase 0 – Project skeleton
 
-- **Dateien:** `pyproject.toml` (setuptools, src-Layout, Abhängigkeiten, `[dev]`-Extra, ruff- und pytest-Konfiguration), `.gitignore`, `src/flashcards/__init__.py`, `main.py` mit `GET /health`, `tests/test_health.py`.
-- **Tests:** `/health` liefert 200.
-- **Abnahme:** `pip install -e ".[dev]"` läuft durch, `ruff check . && pytest` grün, `uvicorn flashcards.main:app` startet.
+- **Files:** `pyproject.toml` (setuptools, src layout, dependencies, `[dev]` extra, ruff and pytest configuration), `.gitignore`, `src/flashcards/__init__.py`, `main.py` with `GET /health`, `tests/test_health.py`.
+- **Tests:** `/health` returns 200.
+- **Acceptance:** `pip install -e ".[dev]"` completes, `ruff check . && pytest` passes, `uvicorn flashcards.main:app` starts.
 
-## Phase 1 – Datenmodell
+## Phase 1 – Data model
 
-- **Dateien:** `models.py`, `db.py`, `tests/conftest.py`, `tests/test_models.py`.
-- **Modell:**
-  - `Deck`: `id`, `name` (eindeutig), `created_at`.
-  - `Card`: `id`, `deck_id` (FK, `ON DELETE CASCADE`), `front`, `back`, `box` (1–5, Standard 1, Check-Constraint), `due_date` (Standard heute), `last_reviewed_at` (optional), `created_at`.
-  - SQLite-Fremdschlüssel per `PRAGMA foreign_keys=ON` aktivieren.
-- **Tests:** neue Karte landet in Fach 1 und ist heute fällig; Deck löschen entfernt Karten; doppelter Deckname und `box` außerhalb 1–5 werden abgelehnt.
-- **Abnahme:** Tests grün; `init_db()` erzeugt die Datei mit beiden Tabellen.
+- **Files:** `models.py`, `db.py`, `tests/conftest.py`, `tests/test_models.py`.
+- **Model:**
+  - `Deck`: `id`, `name` (unique), `created_at`.
+  - `Card`: `id`, `deck_id` (FK, `ON DELETE CASCADE`), `front`, `back`, `box` (1–5, default 1, check constraint), `due_date` (default today), `last_reviewed_at` (optional), `created_at`.
+  - Enable SQLite foreign keys with `PRAGMA foreign_keys=ON`.
+- **Tests:** a new card lands in box 1 and is due today; deleting a deck removes its cards; a duplicate deck name and a `box` outside 1–5 are rejected.
+- **Acceptance:** tests pass; `init_db()` creates the file with both tables.
 
-## Phase 2 – Leitner-Logik (reine Funktionen)
+## Phase 2 – Leitner logic (pure functions)
 
-- **Dateien:** `leitner.py`, `tests/test_leitner.py`. Kein DB- und kein FastAPI-Import.
-- **Funktionen:**
+- **Files:** `leitner.py`, `tests/test_leitner.py`. No DB and no FastAPI import.
+- **Functions:**
   - `BOX_INTERVALS = {1: 0, 2: 1, 3: 3, 4: 7, 5: 14}`
   - `next_box(box, known) -> int`
   - `due_date_for(box, today) -> date`
   - `review(box, known, today) -> tuple[int, date]`
   - `is_due(due_date, today) -> bool`
-- **Tests (parametrisiert):** gewusst 1→2 … 4→5, 5→5; nicht gewusst aus jedem Fach →1; Fälligkeit je Fach 0/1/3/7/14 Tage; `is_due` am Stichtag, davor, danach; ungültiges Fach wirft `ValueError`.
-- **Abnahme:** alle fünf Intervalle und beide Antwortwege durch Tests belegt.
+- **Tests (parametrized):** known 1→2 … 4→5, 5→5; not known from any box →1; due date per box 0/1/3/7/14 days; `is_due` on the due date, before and after; an invalid box raises `ValueError`.
+- **Acceptance:** all five intervals and both answer paths are covered by tests.
 
-## Phase 3 – REST-API (Decks und Karten)
+## Phase 3 – REST API (decks and cards)
 
-- **Dateien:** `schemas.py`, `services.py`, `routers/api.py`, `main.py` (Router einhängen), `tests/test_api_decks.py`, `tests/test_api_cards.py`.
-- **Endpunkte:**
+- **Files:** `schemas.py`, `services.py`, `routers/api.py`, `main.py` (include the router), `tests/test_api_decks.py`, `tests/test_api_cards.py`.
+- **Endpoints:**
   - `GET/POST /api/decks`, `GET/PATCH/DELETE /api/decks/{id}`
   - `GET/POST /api/decks/{id}/cards`, `GET/PATCH/DELETE /api/cards/{id}`
-- **Regeln:** Texte werden getrimmt, leere Werte ergeben 422; unbekannte ID 404; doppelter Deckname 409; `POST` 201, `DELETE` 204.
-- **Tests:** je Endpunkt Erfolgsfall plus 404/409/422; Deck löschen entfernt Karten; `PATCH` einer Karte lässt `box`/`due_date` unverändert.
-- **Abnahme:** Decks und Karten vollständig über `/docs` bedienbar.
+- **Rules:** texts are trimmed, empty values result in 422; unknown ID 404; duplicate deck name 409; `POST` 201, `DELETE` 204.
+- **Tests:** a success case plus 404/409/422 per endpoint; deleting a deck removes its cards; `PATCH` on a card leaves `box`/`due_date` unchanged.
+- **Acceptance:** decks and cards can be fully operated through `/docs`.
 
-## Phase 4 – HTML-Oberfläche (Decks und Karten)
+## Phase 4 – HTML interface (decks and cards)
 
-- **Dateien:** `routers/pages.py`, `templates/base.html`, `decks.html`, `deck_detail.html`, `partials/` (Deckzeile, Kartenzeile, Bearbeitungsformulare), `static/htmx.min.js`, `static/pico.min.css`, `tests/test_pages.py`.
-- **Seiten:** `/` Deckliste mit Anlegen; `/decks/{id}` Kartenliste mit Anlegen. Umbenennen, Bearbeiten und Löschen inline per HTMX (Partial-Austausch), Löschen mit Rückfrage. Texte auf Deutsch. Die Routen nutzen dieselben Funktionen aus `services.py` wie die API.
-- **Tests:** Seiten liefern 200 und enthalten die Daten; Formular-POSTs legen an/ändern/löschen; HTMX-Anfragen liefern nur das Partial; Fehleingaben zeigen eine deutsche Meldung.
-- **Abnahme:** Deck und Karten lassen sich im Browser ohne Seitenreload anlegen, ändern und löschen.
+- **Files:** `routers/pages.py`, `templates/base.html`, `decks.html`, `deck_detail.html`, `partials/` (deck row, card row, edit forms), `static/htmx.min.js`, `static/pico.min.css`, `tests/test_pages.py`.
+- **Pages:** `/` deck list with creation; `/decks/{id}` card list with creation. Renaming, editing and deleting happen inline via HTMX (partial swap), deleting with confirmation. The routes use the same functions from `services.py` as the API.
+- **Tests:** pages return 200 and contain the data; form POSTs create/change/delete; HTMX requests return only the partial; invalid input shows an error message.
+- **Acceptance:** a deck and cards can be created, changed and deleted in the browser without a page reload.
 
-## Phase 5 – Features (je ein Commit)
+## Phase 5 – Features (one commit each)
 
-### 5a Lernmodus
+### 5a Study mode
 
-- **Dateien:** `deps.py`, Erweiterung `services.py`, `routers/api.py`, `routers/pages.py`, `templates/study.html`, `partials/study_card.html`, `tests/test_study.py`.
-- **Ablauf:** `GET /decks/{id}/study` startet eine Sitzung mit Zeitstempel `started`, der in jedem Formular mitläuft. Angeboten werden Karten mit `due_date <= heute` und (`last_reviewed_at` leer oder `< started`) – so kommt jede Karte pro Sitzung genau einmal, ohne serverseitigen Sitzungsspeicher. Karte zeigt Vorderseite, "Aufdecken", dann "Gewusst" / "Nicht gewusst"; die Antwort ruft `leitner.review` auf, speichert `box`, `due_date`, `last_reviewed_at` und liefert die nächste Karte oder "Fertig für heute".
-- **API:** `GET /api/decks/{id}/due`, `POST /api/cards/{id}/review` mit `{"known": bool}`.
-- **Tests:** nur fällige Karten erscheinen; gewusst/nicht gewusst setzen Fach und Datum korrekt; nicht gewusste Karte erscheint in derselben Sitzung nicht erneut, in einer neuen schon; Reihenfolge; leeres Deck zeigt den Endzustand.
-- **Abnahme:** ein Deck lässt sich komplett durchlernen, die Fächer stimmen danach mit der Regel überein.
+- **Files:** `deps.py`, extension of `services.py`, `routers/api.py`, `routers/pages.py`, `templates/study.html`, `partials/study_card.html`, `tests/test_study.py`.
+- **Flow:** `GET /decks/{id}/study` starts a session with a timestamp `started` that travels along in every form. Cards with `due_date <= today` and (`last_reviewed_at` empty or `< started`) are offered – this way each card comes up exactly once per session, without server-side session storage. A card shows the front, "Reveal", then "Known" / "Not known"; the answer calls `leitner.review`, stores `box`, `due_date`, `last_reviewed_at` and returns the next card or "Done for today".
+- **API:** `GET /api/decks/{id}/due`, `POST /api/cards/{id}/review` with `{"known": bool}`.
+- **Tests:** only due cards appear; known/not known set box and date correctly; a card not known does not appear again in the same session but does in a new one; order; an empty deck shows the end state.
+- **Acceptance:** a deck can be studied completely, and the boxes match the rule afterwards.
 
-### 5b Statistik
+### 5b Statistics
 
-- **Dateien:** Erweiterung `services.py` (`deck_stats`), `schemas.py`, beide Router, `partials/stats.html`, `tests/test_stats.py`.
-- **Inhalt:** Karten je Fach 1–5 (auch Nullen), Gesamtzahl, heute fällig. Anzeige auf der Deckseite, "heute fällig" zusätzlich in der Deckliste. API: `GET /api/decks/{id}/stats`.
-- **Tests:** Zählung je Fach, leeres Deck, Fälligkeit am Stichtag und mit überfälligen Karten.
-- **Abnahme:** Zahlen ändern sich nach einer Lernsitzung nachvollziehbar.
+- **Files:** extension of `services.py` (`deck_stats`), `schemas.py`, both routers, `partials/stats.html`, `tests/test_stats.py`.
+- **Content:** cards per box 1–5 (including zeros), total, due today. Shown on the deck page, "due today" also in the deck list. API: `GET /api/decks/{id}/stats`.
+- **Tests:** count per box, empty deck, due on the due date and with overdue cards.
+- **Acceptance:** the numbers change in a comprehensible way after a study session.
 
-### 5c CSV-Import
+### 5c CSV import
 
-- **Dateien:** `csv_import.py`, beide Router, `partials/import_result.html`, `tests/test_csv_import.py`.
-- **Regeln:** Trennzeichen `;`, Anführungszeichen nach CSV-Standard, keine Kopfzeile. Dekodierung als UTF-8 (mit BOM), ersatzweise Windows-1252 (Excel). Leerzeilen werden ignoriert; Zeilen mit anderer Spaltenzahl oder leerer Seite gelten als fehlerhaft und werden mit Zeilennummer gemeldet, der Rest wird trotzdem importiert. Duplikate gegen das Deck und innerhalb der Datei werden übersprungen. Ergebnis: importiert / übersprungen / fehlerhaft.
-- **API:** `POST /api/decks/{id}/import` (Datei-Upload); Formular auf der Deckseite.
-- **Tests:** Parser als reine Funktion (gültig, Anführungszeichen mit `;` im Text, Leerzeilen, falsche Spaltenzahl, beide Kodierungen); Import mit Duplikaten; zweiter Import derselben Datei legt nichts an.
-- **Abnahme:** eine aus Excel exportierte Datei mit Umlauten wird korrekt importiert, neue Karten liegen in Fach 1 und sind sofort fällig.
+- **Files:** `csv_import.py`, both routers, `partials/import_result.html`, `tests/test_csv_import.py`.
+- **Rules:** delimiter `;`, quoting according to the CSV standard, no header row. Decoded as UTF-8 (with BOM), falling back to Windows-1252 (Excel). Blank lines are ignored; lines with a different number of columns or an empty side count as invalid and are reported with their line number, the rest is imported anyway. Duplicates against the deck and within the file are skipped. Result: imported / skipped / invalid.
+- **API:** `POST /api/decks/{id}/import` (file upload); form on the deck page.
+- **Tests:** parser as a pure function (valid, quotes with `;` in the text, blank lines, wrong number of columns, both encodings); import with duplicates; a second import of the same file creates nothing.
+- **Acceptance:** a file exported from Excel with umlauts is imported correctly, new cards are in box 1 and due immediately.
 
-## Verifikation am Ende
+## Final verification
 
-1. `pip install -e ".[dev]"`, dann `ruff check . && pytest` – alles grün.
-2. `uvicorn flashcards.main:app --reload`, im Browser: Deck anlegen und umbenennen, Karten anlegen/bearbeiten/löschen, CSV importieren, Lernsitzung durchspielen (gewusst und nicht gewusst), Statistik prüfen, Deck löschen.
-3. `/docs` gegenprüfen: alle API-Endpunkte vorhanden und bedienbar.
+1. `pip install -e ".[dev]"`, then `ruff check . && pytest` – everything passes.
+2. `uvicorn flashcards.main:app --reload`, in the browser: create and rename a deck, create/edit/delete cards, import a CSV, play through a study session (known and not known), check the statistics, delete the deck.
+3. Cross-check `/docs`: all API endpoints are present and usable.

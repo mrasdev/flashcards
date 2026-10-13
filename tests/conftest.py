@@ -10,12 +10,12 @@ from flashcards.deps import get_now, get_today
 from flashcards.main import app
 from flashcards.models import Card
 
-# Festes "Heute" für alle Tests, die über die App laufen.
+# Fixed "today" for all tests that go through the app.
 TODAY = date(2026, 3, 10)
 
 
 class Clock:
-    """Stellbare Uhr, damit Lernsitzungen in Tests eindeutige Zeitpunkte haben."""
+    """Adjustable clock so study sessions in tests have distinct points in time."""
 
     def __init__(self):
         self.now = datetime(2026, 3, 10, 9, 0, tzinfo=UTC)
@@ -27,7 +27,7 @@ class Clock:
 
 @pytest.fixture
 def engine():
-    # StaticPool: alle Sessions teilen sich dieselbe In-Memory-Datenbank.
+    # StaticPool: all sessions share the same in-memory database.
     engine = make_engine("sqlite://", poolclass=StaticPool)
     init_db(engine)
     yield engine
@@ -54,19 +54,19 @@ def client(engine, clock):
     app.dependency_overrides[get_session] = override_session
     app.dependency_overrides[get_today] = lambda: TODAY
     app.dependency_overrides[get_now] = lambda: clock.now
-    # Ohne "with": der Lifespan läuft nicht, es entsteht keine echte DB-Datei.
+    # Without "with": the lifespan does not run, so no real DB file is created.
     yield TestClient(app)
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def deck(client):
-    return client.post("/api/decks", json={"name": "Spanisch"}).json()
+    return client.post("/api/decks", json={"name": "Spanish"}).json()
 
 
 @pytest.fixture
 def add_card(client, engine, deck):
-    """Legt eine Karte an und setzt bei Bedarf Fach und Fälligkeit direkt in der DB."""
+    """Create a card and, if needed, set box and due date directly in the DB."""
 
     def _add(front, back="x", box=1, due_in_days=0, deck_id=None):
         card = client.post(

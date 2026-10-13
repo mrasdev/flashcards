@@ -1,11 +1,11 @@
-"""Leitner-Regeln als reine Funktionen, ohne Datenbank und ohne Uhr."""
+"""Leitner rules as pure functions, without a database and without a clock."""
 
 from datetime import date, timedelta
 
 FIRST_BOX = 1
 LAST_BOX = 5
 
-# Tage bis zur nächsten Fälligkeit je Fach.
+# Days until the next due date per box.
 BOX_INTERVALS = {1: 0, 2: 1, 3: 3, 4: 7, 5: 14}
 
 

@@ -1,11 +1,11 @@
-// Tastatursteuerung im Lernmodus: Leertaste deckt auf, J = gewusst, N = nicht gewusst.
-// Der Listener hängt am Dokument und sucht die Karte bei jedem Tastendruck neu,
-// damit er den HTMX-Austausch von #study übersteht.
+// Keyboard control in study mode: Space reveals, K = known, N = not known.
+// The listener is attached to the document and looks up the card on every key press,
+// so it survives the HTMX swap of #study.
 document.addEventListener("keydown", (event) => {
-  // Synthetische Ereignisse (z. B. von Erweiterungen) können ohne Taste oder Element kommen.
+  // Synthetic events (e.g. from extensions) may come without a key or an element.
   if (typeof event.key !== "string" || !(event.target instanceof Element)) return;
 
-  // Tastenkombinationen (z. B. Strg+J) und gehaltene Tasten zählen nicht.
+  // Key combinations (e.g. Ctrl+K) and held keys do not count.
   if (event.ctrlKey || event.altKey || event.metaKey || event.repeat) return;
 
   const target = event.target;
@@ -15,19 +15,19 @@ document.addEventListener("keydown", (event) => {
   if (!details) return;
 
   if (event.key === " ") {
-    // Bei offener Karte und mit Umschalt gehört die Leertaste dem Browser (scrollen).
+    // With the card revealed or with Shift, Space belongs to the browser (scrolling).
     if (details.open || event.shiftKey) return;
-    // Auf Knöpfen und "Aufdecken" löst der Browser die Leertaste selbst aus,
-    // auf Links scrollt er; in beiden Fällen nicht eingreifen.
+    // On buttons and "Reveal" the browser handles Space itself,
+    // on links it scrolls; do not interfere in either case.
     if (target.closest("button, a, summary")) return;
     event.preventDefault();
     details.open = true;
     return;
   }
 
-  // Kleinschreibung, damit J/N auch mit Feststelltaste oder Shift greifen.
+  // Lower case so K/N also work with Caps Lock or Shift.
   const key = event.key.toLowerCase();
-  if ((key === "j" || key === "n") && details.open) {
+  if ((key === "k" || key === "n") && details.open) {
     const button = details.querySelector(`button[data-study-key="${key}"]`);
     if (button) {
       event.preventDefault();

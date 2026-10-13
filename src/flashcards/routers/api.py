@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api")
 
 
 def _duplicate_name() -> HTTPException:
-    return HTTPException(status.HTTP_409_CONFLICT, "Ein Deck mit diesem Namen existiert bereits")
+    return HTTPException(status.HTTP_409_CONFLICT, "A deck with this name already exists")
 
 
 @router.get("/decks", response_model=list[DeckRead], tags=["Decks"])
@@ -54,7 +54,7 @@ def delete_deck(deck: DeckDep, session: SessionDep) -> None:
     services.delete_deck(session, deck)
 
 
-@router.get("/decks/{deck_id}/cards", response_model=list[CardRead], tags=["Karten"])
+@router.get("/decks/{deck_id}/cards", response_model=list[CardRead], tags=["Cards"])
 def list_cards(deck: DeckDep, session: SessionDep):
     return services.list_cards(session, deck)
 
@@ -63,43 +63,43 @@ def list_cards(deck: DeckDep, session: SessionDep):
     "/decks/{deck_id}/cards",
     response_model=CardRead,
     status_code=status.HTTP_201_CREATED,
-    tags=["Karten"],
+    tags=["Cards"],
 )
 def create_card(data: CardCreate, deck: DeckDep, session: SessionDep, today: TodayDep):
     return services.create_card(session, deck, data.front, data.back, today)
 
 
-@router.get("/cards/{card_id}", response_model=CardRead, tags=["Karten"])
+@router.get("/cards/{card_id}", response_model=CardRead, tags=["Cards"])
 def read_card(card: CardDep):
     return card
 
 
-@router.patch("/cards/{card_id}", response_model=CardRead, tags=["Karten"])
+@router.patch("/cards/{card_id}", response_model=CardRead, tags=["Cards"])
 def update_card(data: CardUpdate, card: CardDep, session: SessionDep):
     return services.update_card(session, card, front=data.front, back=data.back)
 
 
-@router.delete("/cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Karten"])
+@router.delete("/cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Cards"])
 def delete_card(card: CardDep, session: SessionDep) -> None:
     services.delete_card(session, card)
 
 
-@router.get("/decks/{deck_id}/due", response_model=list[CardRead], tags=["Lernen"])
+@router.get("/decks/{deck_id}/due", response_model=list[CardRead], tags=["Study"])
 def list_due_cards(deck: DeckDep, session: SessionDep, today: TodayDep):
     return services.due_cards(session, deck, today)
 
 
-@router.post("/cards/{card_id}/review", response_model=CardRead, tags=["Lernen"])
+@router.post("/cards/{card_id}/review", response_model=CardRead, tags=["Study"])
 def review_card(
     data: ReviewCreate, card: CardDep, session: SessionDep, today: TodayDep, now: NowDep
 ):
     try:
         return services.review_card(session, card, data.known, today, now)
     except services.CardNotDueError:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Karte ist heute nicht fällig") from None
+        raise HTTPException(status.HTTP_409_CONFLICT, "Card is not due today") from None
 
 
-@router.get("/decks/{deck_id}/stats", response_model=DeckStatsRead, tags=["Statistik"])
+@router.get("/decks/{deck_id}/stats", response_model=DeckStatsRead, tags=["Statistics"])
 def read_deck_stats(deck: DeckDep, session: SessionDep, today: TodayDep):
     return services.deck_stats(session, deck, today)
 
@@ -108,5 +108,5 @@ def read_deck_stats(deck: DeckDep, session: SessionDep, today: TodayDep):
 def import_cards(file: UploadFile, deck: DeckDep, session: SessionDep, today: TodayDep):
     data = file.file.read(csv_import.MAX_UPLOAD_BYTES + 1)
     if len(data) > csv_import.MAX_UPLOAD_BYTES:
-        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "Die Datei ist größer als 1 MB")
+        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "The file is larger than 1 MB")
     return csv_import.import_csv(session, deck, data, today)
