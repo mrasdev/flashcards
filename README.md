@@ -1,6 +1,6 @@
 # Flashcards
 
-A flashcard trainer based on the Leitner system, built as a small web app. I use it to prepare for the IHK exam, a German vocational qualification.
+A flashcard trainer based on the Leitner system, built as a small web app.
 
 Cards live in five boxes. A card you know moves up one box and comes back later; a card you do not know returns to box 1 and is due again right away.
 
@@ -24,8 +24,7 @@ Cards live in five boxes. A card you know moves up one box and comes back later;
 
 ## Screenshot
 
-<!-- TODO: add a screenshot of the study mode, e.g. docs/screenshot.png -->
-_Screenshot coming soon._
+![Study mode with a revealed card and the Known / Not known buttons](docs/screenshot.png)
 
 ## Requirements
 
@@ -65,7 +64,7 @@ Then open <http://127.0.0.1:8000>.
 
 Data is stored in a SQLite file, `flashcards.db` in the current directory by default. Set the environment variable `FLASHCARDS_DB` to use a different path.
 
-To try the app with sample data, create a deck and import `demo/it-fragen.csv`. It contains IT questions in German, since that is the language of the exam.
+To try the app with sample data, create a deck and import `demo/it-fragen.csv`. It contains IT questions in German.
 
 ## Tests
 
