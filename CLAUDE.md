@@ -5,15 +5,10 @@ Flashcard trainer using the Leitner system as a web app.
 ## Tech stack
 
 - Python 3.12+ (code stays 3.12-compatible, 3.14 runs locally)
-- FastAPI
-- SQLModel with SQLite
-- Jinja2 templates, HTMX, Pico.css (as files in `src/flashcards/static/`, no CDN)
+- HTMX and Pico.css as files in `src/flashcards/static/`, no CDN
 
 ## Project structure
 
-- src layout: application code in `src/flashcards/`
-- Tests in `tests/`
-- Dependencies in `pyproject.toml`
 - Planning and progress: `docs/PLAN.md`
 
 ## Architecture
@@ -25,10 +20,6 @@ Flashcard trainer using the Leitner system as a web app.
 
 ## Commands
 
-- Install: `pip install -e ".[dev]"`
-- Linting: `ruff check .`
-- Tests: `pytest`
-- Start the app: `uvicorn flashcards.main:app --reload`
 - Before every commit: `ruff check . && pytest`
 
 ## Conventions
